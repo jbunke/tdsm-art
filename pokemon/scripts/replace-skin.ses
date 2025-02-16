@@ -1,0 +1,39 @@
+(image input -> image) {
+    ~ color PANTS_BF = #7fff5f; ~ color PANTS = #e8e8f8;
+    ~ color[] SKIN = [ #f8d0b8, #e8b898, #d8a078, #d89870 ];
+    ~ color[] SKIN_OUTLINE = [ #784040, #403038 ];
+    ~ float SKIN_HUE = 1 / 3f;
+    ~ float OUTLINE_HUE_DIFF = SKIN[0].hue - SKIN_OUTLINE[0].hue;
+
+    int w = input.w; int h = input.h;
+    image output = new_image_of(w, h);
+
+    for (int x = 0; x < w; x++)
+        for (int y = 0; y < h; y++) {
+            color c = input.pixel(x, y);
+
+            when (c) {
+                is PANTS_BF -> output.dot(PANTS, x, y);
+                matches SKIN.has(_) -> {
+                    color to_set = $Graphics.hsv(SKIN_HUE, c.sat, c.val);
+                    output.dot(to_set, x, y);
+                }
+                matches SKIN_OUTLINE.has(_) -> {
+                    ~ float hue = normalize(SKIN_HUE - OUTLINE_HUE_DIFF);
+                    
+                    color to_set = $Graphics.hsv(hue, c.sat, c.val);
+                    output.dot(to_set, x, y);
+                }
+                matches _.a == 0xff -> output.dot(c, x, y);
+            }
+        }
+    
+    return output;
+}
+
+normalize(float f -> float) {
+    while (f < 0) f += 1f;
+    while (f > 1) f -= 1f;
+
+    return f;
+}

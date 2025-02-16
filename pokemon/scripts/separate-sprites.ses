@@ -2,10 +2,11 @@
     ~ project all = $SE.get_project();
 
     string[] names = [
-        "elm", "silver", "heavy-npc", "old-man-npc", "karate-master", "falkner", 
-        "bugsy", "whitney", "morty", "chuck", "jasmine", "pryce", "clair", 
-        "will", "koga", "bruno", "karen", "lance", "surge", "sabrina", "misty",
-        "erika", "janine", "brock", "blaine", "blue", "red", "gold", "kimono-girl", "steven"
+        "elm", "silver", "heavy-npc", "old-man-npc", "karate-master", 
+        "falkner", "bugsy", "whitney", "morty", "chuck", "jasmine", 
+        "pryce", "clair", "will", "koga", "bruno", "karen", "lance", 
+        "surge", "sabrina", "misty", "erika", "janine", "brock", 
+        "blaine", "blue", "red", "gold", "kimono-girl", "steven"
     ];
 
     int to_save = #| names;
@@ -24,7 +25,8 @@
         nl.set_cel(0, content);
 
         save_config nsc = $SE.new_save_config(
-            [ "C:", "Users", "Jordan Bunke", "Pictures", ".tdsm", "tdsm-art", "pokemon", "study", "indiv" ], 
+            [ "C:", "Users", "Jordan Bunke", "Pictures", ".tdsm", 
+                    "tdsm-art", "pokemon", "study", "indiv" ], 
             names[i], $SE.PNG_SHEET);
         made.save_as(nsc);
     }

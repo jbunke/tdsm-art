@@ -413,7 +413,7 @@
 	},
 	{layer:
 		{layer_name:Face}
-		{is_enabled:true}
+		{is_enabled:false}
 		{is_linked:false}
 		{opacity:1.0}
 		{onion_skin:}
