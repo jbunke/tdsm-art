@@ -1,0 +1,31 @@
+() {
+    ~ project all = $SE.get_project();
+
+    string[] names = [
+        "elm", "silver", "heavy-npc", "old-man-npc", "karate-master", "falkner", 
+        "bugsy", "whitney", "morty", "chuck", "jasmine", "pryce", "clair", 
+        "will", "koga", "bruno", "karen", "lance", "surge", "sabrina", "misty",
+        "erika", "janine", "brock", "blaine", "blue", "red", "gold", "kimono-girl", "steven"
+    ];
+
+    int to_save = #| names;
+    int w = all.get_width();
+    int h = all.get_height();
+
+    layer l = all.get_layer();
+    save_config sc = all.get_save_config();
+
+    for (int i = 0; i < to_save; i++) {
+        ~ image content = l.get_cel(i);
+
+        project made = $SE.new_project(w, h, false);
+        layer nl = made.get_layer();
+
+        nl.set_cel(0, content);
+
+        save_config nsc = $SE.new_save_config(
+            [ "C:", "Users", "Jordan Bunke", "Pictures", ".tdsm", "tdsm-art", "pokemon", "study", "indiv" ], 
+            names[i], $SE.PNG_SHEET);
+        made.save_as(nsc);
+    }
+}

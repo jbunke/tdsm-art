@@ -1,0 +1,33 @@
+() {
+    ~ int first_correct = 6;
+    
+    ~ project p = $SE.get_project();
+    ~ layer l = p.get_layer();
+
+    for (int f = 0; f < first_correct; f++) {
+        ~ image src = l.get_cel(f);
+
+        ~ image left_step = get_sprite(src, 3, 2);
+        ~ image right_step = get_sprite(src, 3, 1);
+
+        draw_sprite(src, left_step, 3, 1);
+        draw_sprite(src, right_step, 3, 2);
+
+        l.set_cel(f, src);
+    }
+}
+
+get_sprite(image src, int from_x, int from_y -> image) {
+    ~ int SPRITE_DIM = 32;
+    return src.section(from_x * SPRITE_DIM, from_y * SPRITE_DIM, SPRITE_DIM, SPRITE_DIM);
+}
+
+draw_sprite(image src, image sprite, int to_x, int to_y) {
+    ~ int SPRITE_DIM = 32;
+
+    for (int x = 0; x < SPRITE_DIM; x++)
+        for (int y = 0; y < SPRITE_DIM; y++)
+            src.dot(#00000000, (to_x * SPRITE_DIM) + x, (to_y * SPRITE_DIM) + y);
+
+    src.draw(sprite, to_x * SPRITE_DIM, to_y * SPRITE_DIM);
+}
