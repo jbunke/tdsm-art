@@ -1,0 +1,35 @@
+// To be run when the hair workspace is the active project
+() {
+    ~ string[] IDs = [
+        "dragon-master", "chic", "porcupine", "nest", "high-ponytail", 
+        "mane", "silver-fox", "magnate", "receding", "cowlick", "heli-pad", 
+        "professional" // TODO - add more
+    ];
+    ~ string[] ART_FOLDER = [
+            "C:", "Users", "Jordan Bunke", "Pictures", 
+            ".tdsm", "tdsm-art", "pokemon", "study", "hair"
+    ];
+    ~ string[] PROGRAM_FOLDER = [
+        "C:", "Users", "Jordan Bunke", "Documents", "Java", 
+        "2022", "tdsm", "res", "sprite_assets", "pkmn", "hair"
+    ];
+    ~ int to_save = #| IDs;
+
+    project hair_workspace = $SE.get_project();
+    layer hair_layer = hair_workspace.get_layer("Hair");
+
+    for (int i = 0; i < to_save; i++) {
+        ~ image content = hair_layer.get_cel(i);
+
+        project made = $SE.new_project(content.get_width(), content.get_height(), false);
+        layer nl = made.get_layer();
+
+        nl.set_cel(0, content);
+
+        save_config nsc = $SE.new_save_config(ART_FOLDER, IDs[i], $SE.PNG_SHEET);
+        made.save_as(nsc);
+
+        save_config nsc2 = $SE.new_save_config(PROGRAM_FOLDER, IDs[i], $SE.PNG_SHEET);
+        made.save_as(nsc2);
+    }
+}
