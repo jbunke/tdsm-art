@@ -1,0 +1,67 @@
+// To be run when the clothes workspace is the active project
+() {
+    ~ string[] TOPS = [ "vest" ];
+    ~ string[] BOTTOMS = [ "slacks" ];
+    ~ string[] OUTFITS = [ "farmer-1", "gi" ];
+
+    ~ int start_bottoms = #| TOPS;
+    ~ int start_outfits = start_bottoms + (#| BOTTOMS);
+    ~ int to_save = start_outfits + (#| OUTFITS);
+
+    project clothes_workspace = $SE.get_project();
+    layer clothes_layer = clothes_workspace.get_layer("Clothes");
+
+    for (int i = 0; i < to_save; i++) {
+        if (i < start_bottoms)
+            save_clothing(clothes_layer, i, TOPS[i], "top");
+        else if (i < start_outfits)
+            save_clothing(clothes_layer, i, BOTTOMS[i - start_bottoms], "bottom");
+        else
+            save_clothing(clothes_layer, i, OUTFITS[i - start_outfits], "outfit");
+    }
+}
+
+save_clothing(~ layer clothes_layer, ~ int i, ~ string id, ~ string article) {
+    ~ image content = clothes_layer.get_cel(i);
+
+    save_size(content, id, article, true);
+    save_size(content, id, article, false);
+}
+
+save_size(~ image content, ~ string id, ~ string article, ~ bool isSmall) {
+    image anim = animate(content, isSmall);
+
+    ~ string[] art_folder = [
+        "C:", "Users", "Jordan Bunke", "Pictures", 
+        ".tdsm", "tdsm-art", "pokemon", "bases", 
+        prefix(isSmall) + "-" + article
+    ];
+    ~ string[] program_folder = [
+        "C:", "Users", "Jordan Bunke", "Documents", "Java", 
+        "2022", "tdsm", "res", "sprite_assets", "pkmn", 
+        prefix(isSmall) + "-" + article
+    ];
+
+    project p = $SE.new_project(anim.w, anim.h, false);
+    layer l = p.get_layer();
+
+    l.set_cel(0, anim);
+
+    save_project(p, art_folder, id);
+    save_project(p, program_folder, id);
+}
+
+save_project(~ project p, ~ string[] folder, ~ string name) {
+    save_config sc = $SE.new_save_config(folder, name, $SE.PNG_SHEET);
+    p.save_as(sc);
+}
+
+animate(~ image source, ~ bool isSmall -> image) {
+    ~ string FOLDER = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/workspaces/";
+    ~ image MAP = read_image(FOLDER + "t-body-map.png");
+    ~ image ANIM = read_image(FOLDER + prefix(isSmall) + "-anim-mapping.png");
+
+    return $Graphics.uv_mapping(source, MAP, ANIM);
+}
+
+prefix(~ bool isSmall -> string) -> isSmall ? "sm" : "av"

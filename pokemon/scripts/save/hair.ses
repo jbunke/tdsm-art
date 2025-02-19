@@ -3,11 +3,12 @@
     ~ string[] IDs = [
         "dragon-master", "chic", "porcupine", "nest", "high-ponytail", 
         "mane", "silver-fox", "magnate", "receding", "cowlick", "heli-pad", 
-        "professional" // TODO - add more
+        "professional", "mop", "pigtails", "crew-cut", "flared-curtains", 
+        "dainty", "geezer", "serene", "outta-my-face", "rocker" // TODO - add more
     ];
     ~ string[] ART_FOLDER = [
             "C:", "Users", "Jordan Bunke", "Pictures", 
-            ".tdsm", "tdsm-art", "pokemon", "study", "hair"
+            ".tdsm", "tdsm-art", "pokemon", "bases", "hair"
     ];
     ~ string[] PROGRAM_FOLDER = [
         "C:", "Users", "Jordan Bunke", "Documents", "Java", 
@@ -21,7 +22,7 @@
     for (int i = 0; i < to_save; i++) {
         ~ image content = hair_layer.get_cel(i);
 
-        project made = $SE.new_project(content.get_width(), content.get_height(), false);
+        project made = $SE.new_project(content.w, content.h, false);
         layer nl = made.get_layer();
 
         nl.set_cel(0, content);

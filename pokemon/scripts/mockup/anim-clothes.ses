@@ -1,0 +1,28 @@
+(image[] input -> image[]) {
+    ~ string FOLDER = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/workspaces/";
+    ~ image MAP = read_image(FOLDER + "t-body-map.png");
+    ~ image AV_ANIM = read_image(FOLDER + "av-anim-mapping.png");
+    ~ image SM_ANIM = read_image(FOLDER + "sm-anim-mapping.png");
+
+    ~ string BODY_FOLDER = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/bases/body/";
+    ~ image AV_BODY = read_image(BODY_FOLDER + "average-body.png");
+    ~ image SM_BODY = read_image(BODY_FOLDER + "small-body.png");
+
+    project p = $SE.get_project();
+    int fi = p.get_frame_index();
+    image tex = p.get_layer("Clothes").get_cel(fi);
+
+    image sm = $Graphics.uv_mapping(tex, MAP, SM_ANIM);
+    image av = $Graphics.uv_mapping(tex, MAP, AV_ANIM);
+
+    int w = sm.w; int h = sm.h;
+    image output = new_image_of(w, h * 2);
+
+    output.draw(SM_BODY, 0, 0);
+    output.draw(AV_BODY, 0, h);
+
+    output.draw(sm, 0, 0);
+    output.draw(av, 0, h);
+
+    return [ output ];
+}
