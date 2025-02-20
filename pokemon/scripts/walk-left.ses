@@ -1,0 +1,18 @@
+(image[] input -> image[]) {
+    ~ int fc = #| input;
+    ~ int w = input[0].w; ~ int h = input[0].h;
+    ~ int nw = w * 2;
+    ~ int gap = nw - w;
+
+    ~ image[] output = new image[fc];
+
+    for (int f = 0; f < fc; f++) {
+        ~ image frame = new_image_of(nw, h);
+        ~ int walked = (int) ((f / (float) fc) * gap)
+        ~ int x = gap - walked;
+        frame.draw(input[f], x, 0);
+        output[f] = frame;
+    }
+
+    return output;
+}

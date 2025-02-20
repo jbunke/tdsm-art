@@ -1,0 +1,12 @@
+(image input -> image) {
+    ~ int w = input.w; ~ int h = input.h;
+    ~ image out = new_image_of(w, h);
+
+    for (int x = 0; x < w; x++) {
+        for (int y = 0; y < h; y++) {
+            out.dot(input.pixel(x, y), (w - 1) - x, y);
+        }
+    }
+
+    return out;
+}
