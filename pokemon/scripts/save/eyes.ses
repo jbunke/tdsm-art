@@ -4,7 +4,7 @@
     
     ~ string[] IDs = [
         "determined", "soft", "narrow", "hooded", "menacing", "feminine", 
-        "vacant", "cranky", "tired"
+        "vacant", "cranky", "tired", "lashes"
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);

@@ -8,7 +8,7 @@
         "professional", "mop", "pigtails", "crew-cut", "flared-curtains", 
         "dainty", "geezer", "serene", "outta-my-face", "rocker", 
         "disheveled", "pixie", "closer", "bangs", "pageant-queen", "pippi", 
-        "prodigy", "framed", "afro", "raven"
+        "prodigy", "framed", "afro", "raven", "waves"
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);

@@ -3,7 +3,7 @@
     ~ string GENERIC_FP = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/scripts/save/generic.ses";
     
     ~ string[] IDs = [
-        "fitted-front", "fitted-back", "fedora"
+        "fitted-front", "fitted-back", "fedora", "durag"
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);

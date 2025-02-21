@@ -1,0 +1,17 @@
+() {
+    ~ project p = $SE.get_project();
+
+    for (l in p.get_layers()) {
+        if (ends_with(l.get_name(), "screen"))
+            l.set_opacity(1.0);
+    }
+}
+
+ends_with(string s, string sub -> bool) {
+    ~ int n = #| s;
+    ~ int sn = #| sub;
+
+    if (sn > n) return false;
+
+    return s.sub(n - sn, n) == sub;
+}

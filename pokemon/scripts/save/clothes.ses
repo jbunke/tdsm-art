@@ -1,11 +1,13 @@
 // To be run when the clothes workspace is the active project
 () {
-    ~ string[] TOPS = [ "vest" ];
-    ~ string[] BOTTOMS = [ "slacks" ];
+    ~ string[] TOPS = [ "vest", "blouse" ];
+    ~ string[] BOTTOMS = [ "slacks", "shorts" ];
+    ~ string[] SHOES = [ "simple" ];
     ~ string[] OUTFITS = [ "farmer-1", "gi" ];
 
     ~ int start_bottoms = #| TOPS;
-    ~ int start_outfits = start_bottoms + (#| BOTTOMS);
+    ~ int start_shoes = start_bottoms + (#| BOTTOMS)
+    ~ int start_outfits = start_shoes + (#| SHOES);
     ~ int to_save = start_outfits + (#| OUTFITS);
 
     project clothes_workspace = $SE.get_project();
@@ -14,8 +16,10 @@
     for (int i = 0; i < to_save; i++) {
         if (i < start_bottoms)
             save_clothing(clothes_layer, i, TOPS[i], "top");
-        else if (i < start_outfits)
+        else if (i < start_shoes)
             save_clothing(clothes_layer, i, BOTTOMS[i - start_bottoms], "bottom");
+        else if (i < start_outfits)
+            save_clothing(clothes_layer, i, SHOES[i - start_shoes], "shoes");
         else
             save_clothing(clothes_layer, i, OUTFITS[i - start_outfits], "outfit");
     }
