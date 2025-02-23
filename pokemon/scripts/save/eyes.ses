@@ -1,6 +1,6 @@
 // To be run when the eyes workspace is the active project
 () {
-    ~ string GENERIC_FP = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/scripts/save/generic.ses";
+    ~ string GENERIC_FP = "./generic.ses";
     
     ~ string[] IDs = [
         "determined", "soft", "narrow", "hooded", "menacing", "feminine", 

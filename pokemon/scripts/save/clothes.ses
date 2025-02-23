@@ -35,33 +35,16 @@ save_clothing(~ layer clothes_layer, ~ int i, ~ string id, ~ string article) {
 save_size(~ image content, ~ string id, ~ string article, ~ bool isSmall) {
     image anim = animate(content, isSmall);
 
-    ~ string[] art_folder = [
-        "C:", "Users", "Jordan Bunke", "Pictures", 
-        ".tdsm", "tdsm-art", "pokemon", "bases", 
-        prefix(isSmall) + "-" + article
-    ];
-    ~ string[] program_folder = [
-        "C:", "Users", "Jordan Bunke", "Documents", "Java", 
-        "2022", "tdsm", "res", "sprite_assets", "pkmn", 
-        prefix(isSmall) + "-" + article
-    ];
-
-    project p = $SE.new_project(anim.w, anim.h, false);
-    layer l = p.get_layer();
-
-    l.set_cel(0, anim);
-
-    save_project(p, art_folder, id);
-    save_project(p, program_folder, id);
-}
-
-save_project(~ project p, ~ string[] folder, ~ string name) {
-    save_config sc = $SE.new_save_config(folder, name, $SE.PNG_SHEET);
-    p.save_as(sc);
+    ~ string art_folder = "../../bases/" + prefix(isSmall) + "-" + article + "/";
+    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/pkmn/" + 
+            prefix(isSmall) + "-" + article + "/";
+    
+    write_image(art_folder + id + ".png", anim);
+    write_image(program_folder + id + ".png", anim);
 }
 
 animate(~ image source, ~ bool isSmall -> image) {
-    ~ string FOLDER = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/workspaces/";
+    ~ string FOLDER = "../../workspaces/";
     ~ image MAP = read_image(FOLDER + "t-body-map.png");
     ~ image ANIM = read_image(FOLDER + prefix(isSmall) + "-anim-mapping.png");
 

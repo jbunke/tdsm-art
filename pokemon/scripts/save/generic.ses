@@ -1,27 +1,25 @@
 // To be run when the eyes workspace is the active project
 (~ string[] IDs, ~ string folder, ~ layer l) {
-    ~ string[] ART_FOLDER = [
-            "C:", "Users", "Jordan Bunke", "Pictures", 
-            ".tdsm", "tdsm-art", "pokemon", "bases", folder
-    ];
-    ~ string[] PROGRAM_FOLDER = [
-        "C:", "Users", "Jordan Bunke", "Documents", "Java", 
-        "2022", "tdsm", "res", "sprite_assets", "pkmn", folder
-    ];
+    ~ string art_folder = "../../bases/" + folder + "/";
+    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/pkmn/" + folder + "/";
     ~ int to_save = #| IDs;
 
     for (int i = 0; i < to_save; i++) {
         ~ image content = l.get_cel(i);
 
-        project made = $SE.new_project(content.w, content.h, false);
-        layer nl = made.get_layer();
-
-        nl.set_cel(0, content);
-
-        save_config sc = $SE.new_save_config(ART_FOLDER, IDs[i], $SE.PNG_SHEET);
-        made.save_as(sc);
-
-        save_config sc2 = $SE.new_save_config(PROGRAM_FOLDER, IDs[i], $SE.PNG_SHEET);
-        made.save_as(sc2);
+        write_image(art_folder + IDs[i] + ".png", content);
+        write_image(program_folder + IDs[i] + ".png", content);
     }
+
+    write_file(program_folder + folder + ".csv", build_csv(IDs));
+}
+
+build_csv(~ string[] IDs -> string) {
+    ~ int n = #| IDs;
+    string s = "";
+
+    for (int i = 0; i < n; i++)
+        s += IDs[i] + (i + 1 < n ? "," : "\n");
+
+    return s;
 }

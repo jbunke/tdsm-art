@@ -1,10 +1,11 @@
+// To be run when the clothes workspace is the active project
 (image[] input -> image[]) {
-    ~ string FOLDER = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/workspaces/";
+    ~ string FOLDER = "../../workspaces/";
     ~ image MAP = read_image(FOLDER + "t-body-map.png");
     ~ image AV_ANIM = read_image(FOLDER + "av-anim-mapping.png");
     ~ image SM_ANIM = read_image(FOLDER + "sm-anim-mapping.png");
 
-    ~ string BODY_FOLDER = "C:/Users/Jordan Bunke/Pictures/.tdsm/tdsm-art/pokemon/bases/body/";
+    ~ string BODY_FOLDER = "../../bases/body/";
     ~ image AV_BODY = read_image(BODY_FOLDER + "average-body.png");
     ~ image SM_BODY = read_image(BODY_FOLDER + "small-body.png");
 
