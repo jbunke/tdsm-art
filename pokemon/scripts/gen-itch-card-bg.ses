@@ -1,0 +1,44 @@
+() {
+    ~ int FC = 4;
+    ~ int W = 192; ~ int H = 160;
+    ~ int SPRITE_DIM = 32;
+    ~ int XS = W / SPRITE_DIM; ~ int YS = H / SPRITE_DIM;
+
+    ~ image[] frames = new image[FC];
+
+    for (int f = 0; f < FC; f++) {
+        ~ image frame = new_image_of(W, H);
+
+        for (int x = 0; x < XS; x++) {
+            for (int y = 0; y < YS; y++) {
+                ~ bool draw = flip_coin();
+
+                if (draw)
+                    frame.draw(cut_random(), x * SPRITE_DIM, y * SPRITE_DIM);
+            }
+        }
+
+        frames[f] = frame;
+    }
+
+    ~ project p = $SE.new_project(W, H);
+    ~ layer l = p.get_layer();
+
+    for (int f = 0; f < FC; f++) {
+        l.set_cel(f, frames[f]);
+
+        if (f + 1 < FC) p.add_frame();
+    }
+}
+
+cut_random(-> image) {
+    ~ string folder = "C:/Users/Jordan Bunke/Pictures/.tdsm/output/pokemon/random/";
+    ~ int num = rand(1, 21);
+    ~ image sheet = read_image(folder + num + ".png");
+
+    ~ int W = 32, ~ int H = 32;
+    ~ int x = rand(0, 4);
+    ~ int y = rand(0, 4);
+
+    return sheet.section(x * W, y * H, W, H);
+}
