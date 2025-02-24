@@ -1,0 +1,1 @@
+(color c -> color) -> c == #c0c0c0 || c == #ffffff ? #00000000 : c
