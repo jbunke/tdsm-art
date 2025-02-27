@@ -13,4 +13,6 @@
 
     ~ script generic = $SE.read_script(GENERIC_FP);
     generic.run(IDs, "hair", $SE.get_project().get_layer("Hair"));
+    generic.run(IDs, "hair-back", $SE.get_project().get_layer("Hair (Back)"));
+    generic.run(IDs, "hair-front", $SE.get_project().get_layer("Hair (Front)"));
 }
