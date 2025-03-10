@@ -26,7 +26,7 @@
 
         save_config nsc = $SE.new_save_config(
             [ "C:", "Users", "Jordan Bunke", "Pictures", ".tdsm", 
-                    "tdsm-art", "pokemon", "study", "indiv" ], 
+                    "tdsm-art", "hokkaido", "study", "indiv" ], 
             names[i], $SE.PNG_SHEET);
         made.save_as(nsc);
     }

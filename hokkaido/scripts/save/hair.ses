@@ -1,4 +1,4 @@
-// To be run when the hair workspace is the active project 
+// To be run when the hair workspace is the active project
 () {
     ~ string GENERIC_FP = "./generic.ses";
     
