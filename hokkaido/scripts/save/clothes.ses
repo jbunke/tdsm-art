@@ -28,27 +28,27 @@
 save_clothing(~ layer clothes_layer, ~ int i, ~ string id, ~ string article) {
     ~ image content = clothes_layer.get_cel(i);
 
-    save_size(content, id, article, true);
-    save_size(content, id, article, false);
+    ~ string[] SIZE_PREFIXES = [ "sm", "av" ];
+
+    for (prefix in SIZE_PREFIXES)
+        save_size(content, id, article, prefix);
 }
 
-save_size(~ image content, ~ string id, ~ string article, ~ bool isSmall) {
-    image anim = animate(content, isSmall);
+save_size(~ image content, ~ string id, ~ string article, ~ string prefix) {
+    image anim = animate(content, prefix);
 
-    ~ string art_folder = "../../bases/" + prefix(isSmall) + "-" + article + "/";
-    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/pkmn/" + 
-            prefix(isSmall) + "-" + article + "/";
+    ~ string art_folder = "../../bases/" + prefix + "-" + article + "/";
+    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/hokkaido/" + 
+            prefix + "-" + article + "/";
     
     write_image(art_folder + id + ".png", anim);
     write_image(program_folder + id + ".png", anim);
 }
 
-animate(~ image source, ~ bool isSmall -> image) {
+animate(~ image source, ~ string prefix -> image) {
     ~ string FOLDER = "../../workspaces/";
     ~ image MAP = read_image(FOLDER + "t-body-map.png");
-    ~ image ANIM = read_image(FOLDER + prefix(isSmall) + "-anim-mapping.png");
+    ~ image ANIM = read_image(FOLDER + prefix + "-anim-mapping.png");
 
     return $Graphics.uv_mapping(source, MAP, ANIM);
 }
-
-prefix(~ bool isSmall -> string) -> isSmall ? "sm" : "av"

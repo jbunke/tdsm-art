@@ -1,6 +1,6 @@
 (~ string[] IDs, ~ string folder, ~ layer l) {
     ~ string art_folder = "../../bases/" + folder + "/";
-    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/pkmn/" + folder + "/";
+    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/hokkaido/" + folder + "/";
     ~ int to_save = #| IDs;
 
     for (int i = 0; i < to_save; i++) {
