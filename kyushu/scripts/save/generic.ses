@@ -1,0 +1,12 @@
+(~ string[] IDs, ~ string folder, ~ layer l) {
+    ~ string art_folder = "../../bases/" + folder + "/";
+    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/kyushu/" + folder + "/";
+    ~ int to_save = #| IDs;
+
+    for (int i = 0; i < to_save; i++) {
+        ~ image content = l.get_cel(i);
+
+        write_image(art_folder + IDs[i] + ".png", content);
+        write_image(program_folder + IDs[i] + ".png", content);
+    }
+}
