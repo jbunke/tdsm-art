@@ -1,6 +1,6 @@
 // To be run when the eyes workspace is the active project
 () {
-    ~ string GENERIC_FP = "./generic.ses";
+    ~ string GENERIC_FP = "./generic-with-csv.ses";
     
     ~ string[] IDs = [
         "determined", "soft", "narrow", "hooded", "menacing", "feminine", 
@@ -8,5 +8,6 @@
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);
-    generic.run(IDs, "eyes", $SE.get_project().get_layer("Eyes"));
+    generic.run(IDs, new {string:int}, "eyes", 
+            $SE.get_project().get_layer("Eyes"));
 }
