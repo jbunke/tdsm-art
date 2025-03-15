@@ -5,6 +5,13 @@
     ~ string[] SHOES = [ "simple" ];
     ~ string[] OUTFITS = [ "farmer-1", "gi" ];
 
+    ~ {string:int} MAP = {
+        "vest" : 2, 
+        "blouse" : 2, 
+        "farmer-1" : 3, 
+        "gi" : 2
+    };
+
     ~ int start_bottoms = #| TOPS;
     ~ int start_shoes = start_bottoms + (#| BOTTOMS)
     ~ int start_outfits = start_shoes + (#| SHOES);
@@ -13,37 +20,58 @@
     project clothes_workspace = $SE.get_project();
     layer clothes_layer = clothes_workspace.get_layer("Clothes");
 
-    for (int i = 0; i < to_save; i++) {
-        if (i < start_bottoms)
-            save_clothing(clothes_layer, i, TOPS[i], "top");
-        else if (i < start_shoes)
-            save_clothing(clothes_layer, i, BOTTOMS[i - start_bottoms], "bottom");
-        else if (i < start_outfits)
-            save_clothing(clothes_layer, i, SHOES[i - start_shoes], "shoes");
-        else
-            save_clothing(clothes_layer, i, OUTFITS[i - start_outfits], "outfit");
-    }
+    save_category(clothes_layer, TOPS, MAP, 0, "top");
+    save_category(clothes_layer, BOTTOMS, MAP, start_bottoms, "bottom");
+    save_category(clothes_layer, SHOES, MAP, start_shoes, "shoes");
+    save_category(clothes_layer, OUTFITS, MAP, start_outfits, "outfit");
 }
 
-save_clothing(~ layer clothes_layer, ~ int i, ~ string id, ~ string article) {
+save_category(~ layer l, ~ string[] IDs, ~ {string:int} MAP, 
+        ~ int cel_offset, ~ string category) {
+    ~ int to_save = #| IDs;
+    string csv = "";
+
+    for (int i = 0; i < to_save; i++) {
+        ~ string id = IDs[i];
+        save_article(l, cel_offset + i, id, category);
+
+        csv += csv_entry(id, MAP) + (i + 1 < to_save ? "," : "\n");
+    }
+
+    for (prefix in size_prefixes())
+        save_csv(csv, prefix + "-" + category);
+}
+
+csv_entry(~ string id, ~ {string:int} MAP -> string) -> 
+        id + ":" + (MAP.has(id) ? MAP.lookup(id) : 1)
+
+save_csv(~ string csv, ~ string folder) {
+    write_file("../../bases/" + folder + "/" + folder + ".csv", csv);
+    write_file(program_folder(folder) + folder + ".csv", csv);
+}
+
+save_article(~ layer clothes_layer, ~ int i, ~ string id, ~ string article) {
     ~ image content = clothes_layer.get_cel(i);
 
-    ~ string[] SIZE_PREFIXES = [ "sm", "av" ];
-
-    for (prefix in SIZE_PREFIXES)
+    for (prefix in size_prefixes())
         save_size(content, id, article, prefix);
 }
+
+size_prefixes(-> string[]) -> [ "sm", "av" ]
 
 save_size(~ image content, ~ string id, ~ string article, ~ string prefix) {
     image anim = animate(content, prefix);
 
     ~ string art_folder = "../../bases/" + prefix + "-" + article + "/";
-    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/hokkaido/" + 
-            prefix + "-" + article + "/";
+    ~ string program_folder = program_folder(prefix + "-" + article);
     
     write_image(art_folder + id + ".png", anim);
     write_image(program_folder + id + ".png", anim);
 }
+
+program_folder(~ string folder -> string) -> 
+        "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/hokkaido/" + 
+        folder + "/"
 
 animate(~ image source, ~ string prefix -> image) {
     ~ string FOLDER = "../../workspaces/";

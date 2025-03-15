@@ -16,6 +16,7 @@
         csv += (i + 1 < to_save) ? "," : "\n";
     }
 
+    write_file(art_folder + folder + ".csv", csv);
     write_file(program_folder + folder + ".csv", csv);
 }
 
