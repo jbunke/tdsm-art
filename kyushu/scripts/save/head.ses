@@ -1,11 +1,12 @@
 // To be run when the head workspace is the active project
 () {
-    ~ string GENERIC_FP = "./generic.ses";
+    ~ string GENERIC_FP = "./generic-with-csv.ses";
 
     ~ string[] IDs = [
         "standard-head"
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);
-    generic.run(IDs, "head", $SE.get_project().get_layer("head"));
+    generic.run(IDs, new {string:int}, "head", 
+            $SE.get_project().get_layer("head"));
 }

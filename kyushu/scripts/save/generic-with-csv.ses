@@ -1,6 +1,6 @@
 (~ string[] IDs, ~ {string:int} incidence, ~ string folder, ~ layer l) {
     ~ string art_folder = "../../bases/" + folder + "/";
-    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/hokkaido/" + folder + "/";
+    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/kyushu/" + folder + "/";
     ~ int to_save = #| IDs;
 
     string csv = "";

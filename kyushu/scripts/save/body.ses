@@ -1,11 +1,12 @@
 // To be run when the body workspace is the active project
 () {
-    ~ string GENERIC_FP = "./generic.ses";
+    ~ string GENERIC_FP = "./generic-with-csv.ses";
 
     ~ string[] IDs = [
         "player-example"
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);
-    generic.run(IDs, "body", $SE.get_project().get_layer("body"));
+    generic.run(IDs, new {string:int}, "body", 
+            $SE.get_project().get_layer("body"));
 }
