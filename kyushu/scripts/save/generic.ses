@@ -1,6 +1,6 @@
 (~ string[] IDs, ~ string folder, ~ layer l) {
     ~ string art_folder = "../../bases/" + folder + "/";
-    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/kyushu/" + folder + "/";
+    ~ string program_folder = read_res_folder() + "kyushu/" + folder + "/";
     ~ int to_save = #| IDs;
 
     for (int i = 0; i < to_save; i++) {
@@ -10,3 +10,5 @@
         write_image(program_folder + IDs[i] + ".png", content);
     }
 }
+
+read_res_folder(-> string) -> read_file("../../../../res-folder.txt")

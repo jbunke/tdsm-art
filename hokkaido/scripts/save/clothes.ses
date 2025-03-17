@@ -69,8 +69,7 @@ save_size(~ image content, ~ string id, ~ string article, ~ string prefix) {
     write_image(program_folder + id + ".png", anim);
 }
 
-program_folder(~ string folder -> string) -> 
-        "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/hokkaido/" + 
+program_folder(~ string folder -> string) -> read_res_folder() + "hokkaido/" + 
         folder + "/"
 
 animate(~ image source, ~ string prefix -> image) {
@@ -80,3 +79,5 @@ animate(~ image source, ~ string prefix -> image) {
 
     return $Graphics.uv_mapping(source, MAP, ANIM);
 }
+
+read_res_folder(-> string) -> read_file("../../../../res-folder.txt")

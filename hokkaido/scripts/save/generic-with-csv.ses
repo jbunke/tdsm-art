@@ -1,6 +1,6 @@
 (~ string[] IDs, ~ {string:int} incidence, ~ string folder, ~ layer l) {
     ~ string art_folder = "../../bases/" + folder + "/";
-    ~ string program_folder = "../../../../../../Documents/Java/2022/tdsm/res/sprite_assets/hokkaido/" + folder + "/";
+    ~ string program_folder = read_res_folder() + "hokkaido/" + folder + "/";
     ~ int to_save = #| IDs;
 
     string csv = "";
@@ -22,3 +22,5 @@
 
 csv_entry(~ string id, ~ {string:int} incidence -> string) -> 
         id + (incidence.has(id) ? ":" + incidence.lookup(id) : "")
+
+read_res_folder(-> string) -> read_file("../../../../res-folder.txt")
