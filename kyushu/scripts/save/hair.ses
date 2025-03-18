@@ -5,13 +5,15 @@
     
     ~ string[] IDs = [
         "anime", "academic", "ten-hut", "skulker", "neighbor", "nerd", 
-        "cote-d'azur", "gemeas", "business", "sweep", "jackie"
+        "cote-d'azur", "gemeas", "business", "sweep", "jackie", "cowlick", 
+        "lego-man", "seance"
     ];
 
     ~ {string:int} MAP = {
         "cote-d'azur" : 1, 
         "gemeas" : 1, 
-        "jackie": 2
+        "jackie": 2, 
+        "seance" : 1
     };
 
     for (id in IDs)
