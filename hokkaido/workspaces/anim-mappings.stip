@@ -816,7 +816,7 @@
 	},
 	{layer:
 		{layer_name:anim}
-		{is_enabled:false}
+		{is_enabled:true}
 		{is_linked:false}
 		{opacity:1.0}
 		{onion_skin:}

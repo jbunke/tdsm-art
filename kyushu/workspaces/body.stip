@@ -5,7 +5,7 @@
 {layers:
 	{layer:
 		{layer_name:ref}
-		{is_enabled:false}
+		{is_enabled:true}
 		{is_linked:true}
 		{opacity:0.6862745098039216}
 		{onion_skin:}
@@ -349,7 +349,7 @@
 	},
 	{layer:
 		{layer_name:fem ref}
-		{is_enabled:true}
+		{is_enabled:false}
 		{is_linked:true}
 		{opacity:0.6901960784313724}
 		{onion_skin:}
