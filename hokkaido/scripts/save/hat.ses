@@ -1,4 +1,5 @@
 // To be run when the hat workspace is the active project
+// TODO - split into back, main, front
 () {
     ~ string GENERIC_FP = "./generic.ses";
     ~ string GEN_W_CSV_FP = "./generic-with-csv.ses";

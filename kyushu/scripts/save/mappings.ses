@@ -1,0 +1,15 @@
+// To be run when the anim-mappings workspace is the active project
+() {
+    ~ string[] PREFIXES = [ "dm", "df" ];
+    ~ layer mappings = $SE.get_project().get_layer("anim");
+
+    for (int i = 0; i < #| PREFIXES; i++)
+        save_anim(PREFIXES[i], mappings.get_cel(i));
+}
+
+save_anim(~ string prefix, ~ image source) {
+    ~ string folder = "../../workspaces/";
+    ~ image to_save = source.section(40, 40, 800, 160);
+
+    write_image(folder + prefix + "-anim-mapping.png", to_save);
+}
