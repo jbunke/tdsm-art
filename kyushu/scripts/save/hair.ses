@@ -6,14 +6,15 @@
     ~ string[] IDs = [
         "anime", "academic", "ten-hut", "skulker", "neighbor", "nerd", 
         "cote-d'azur", "gemeas", "business", "sweep", "jackie", "cowlick", 
-        "lego-man", "seance"
+        "lego-man", "seance", "chopstick-bun"
     ];
 
     ~ {string:int} MAP = {
         "cote-d'azur" : 1, 
         "gemeas" : 1, 
         "jackie": 2, 
-        "seance" : 1
+        "seance" : 1, 
+        "chopstick-bun" : 1
     };
 
     for (id in IDs)

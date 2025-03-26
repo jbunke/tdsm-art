@@ -1,15 +1,19 @@
 // To be run when the hat workspace is the active project
+// TODO - add cat ears + other ear headbands
 () {
     ~ string GENERIC_FP = "./generic.ses";
     ~ string GEN_W_CSV_FP = "./generic-with-csv.ses";
     
     ~ string[] IDs = [
-        "fitted-front", "fitted-back", "fedora", "durag"
+        "yakyu-cap", "adventure", "hiking-hat", "captain", "chef", "gateperson", "bandana", "knit-cap"
     ];
     ~ {string:int} MAP = {
-        "fitted-front" : 2, 
-        "fitted-back" : 2, 
-        "fedora" : 2
+        "yakyu-cap" : 2, 
+        "adventure" : 2, 
+        "captain" : 3, 
+        "gateperson" : 2, 
+        "bandana" : 2, 
+        "knit-cap" : 3
     };
 
     for (id in IDs)
