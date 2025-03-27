@@ -5,7 +5,9 @@
     ~ string GEN_W_CSV_FP = "./generic-with-csv.ses";
     
     ~ string[] IDs = [
-        "yakyu-cap", "adventure", "hiking-hat", "captain", "chef", "gateperson", "bandana", "knit-cap"
+        "yakyu-cap", "adventure", "hiking-hat", "captain", "chef", 
+        "gateperson", "bandana", "knit-cap", "bike-helmet", "top-hat", 
+        "brimmed-beret", "angler-cap"
     ];
     ~ {string:int} MAP = {
         "yakyu-cap" : 2, 
@@ -13,7 +15,10 @@
         "captain" : 3, 
         "gateperson" : 2, 
         "bandana" : 2, 
-        "knit-cap" : 3
+        "knit-cap" : 3, 
+        "bike-helmet" : 2, 
+        "top-hat" : 2, 
+        "angler-cap" : 3
     };
 
     for (id in IDs)

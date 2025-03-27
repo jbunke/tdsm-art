@@ -6,7 +6,9 @@
     ~ string[] IDs = [
         "anime", "academic", "ten-hut", "skulker", "neighbor", "nerd", 
         "cote-d'azur", "gemeas", "business", "sweep", "jackie", "cowlick", 
-        "lego-man", "seance", "chopstick-bun"
+        "lego-man", "seance", "chopstick-bun", "ponytail", "done-up", 
+        "magnate", "slicked-mullet", "waxed", "widow's-peak", "mad-scientist", 
+        "dragon-master", "warrior", "tomboy", "jardin", "psychic"
     ];
 
     ~ {string:int} MAP = {
@@ -14,7 +16,12 @@
         "gemeas" : 1, 
         "jackie": 2, 
         "seance" : 1, 
-        "chopstick-bun" : 1
+        "chopstick-bun" : 1, 
+        "ponytail" : 1, 
+        "done-up" : 1, 
+        "warrior" : 1, 
+        "tomboy" : 1, 
+        "jardin" : 1
     };
 
     for (id in IDs)

@@ -3,7 +3,8 @@
     ~ string GENERIC_FP = "./generic-with-csv.ses";
 
     ~ string[] IDs = [
-        "default", "bushy", "drowsy", "intense", "pointed", "wise", "beady"
+        "default", "bushy", "drowsy", "intense", "pointed", "wise", "beady", 
+        "sunglasses"
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);
