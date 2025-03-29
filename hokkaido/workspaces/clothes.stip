@@ -1,7 +1,7 @@
 {file_standard:1.3}
 {dims:64,32}
-{frame_count:7}
-{frame_durations:1.0,1.0,1.0,1.0,1.0,1.0,1.0}
+{frame_count:8}
+{frame_durations:1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0}
 {layers:
 	{layer:
 		{layer_name:Body}
@@ -397,6 +397,43 @@
 					t,t,t,t,t,t,t,t,t,t,000000,c84848,f08080,705030,705030,f08080,705030,705030,f08080,c84848,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,c84848,f08080,f08080,f08080,c88848,f08080,f08080,f08080,c84848,000000,t,t,t,t,t,t,t,t,t,t,t,
 					t,t,t,t,t,t,t,t,t,t,t,t,t,000000,000000,c88848,000000,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,000000,000000,000000,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
 					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t
+				}
+			},
+			{frame:
+				{dims:64,32}
+				{cols:
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,000000,000000,000000,000000,000000,t,t,t,t,t,t,t,t,t,000000,000000,000000,000000,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,000000,000000,000000,000000,000000,705030,c88848,t,t,t,c88848,705030,000000,000000,000000,000000,000000,000000,t,t,t,t,t,t,t,
+					t,t,t,t,t,000000,c88848,f0b880,c84848,f08080,f08080,c88848,t,t,t,t,t,t,t,c88848,f08080,f08080,c84848,f0b880,c88848,000000,t,t,t,t,t,t,t,t,t,t,t,000000,c88848,f0b880,f08080,f08080,c84848,c84848,c88848,f0b880,f0b880,f0b880,f0b880,f0b880,c88848,c84848,c84848,f08080,f08080,f0b880,c88848,000000,t,t,t,t,t,t,
+					t,t,t,t,t,000000,c88848,f0b880,c84848,f08080,c84848,703030,c88848,f0b880,f0b880,f0b880,c88848,f0b880,c88848,703030,c84848,f08080,c84848,f0b880,c88848,000000,t,t,t,t,t,t,t,t,t,t,t,000000,c88848,f0b880,f08080,f08080,c84848,703030,c84848,c88848,f0b880,f0b880,f0b880,c88848,c84848,703030,c84848,f08080,f08080,f0b880,c88848,000000,t,t,t,t,t,t,
+					t,t,t,t,t,t,000000,000000,000000,000000,000000,000000,c84848,f08080,f08080,f08080,f0b880,f0b880,c84848,000000,000000,000000,000000,000000,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,000000,000000,000000,000000,000000,c84848,f08080,f08080,f08080,f08080,f08080,c84848,000000,000000,000000,000000,000000,000000,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,000000,703030,c84848,f08080,f08080,f0b880,c88848,703030,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,703030,c84848,f08080,f08080,f08080,c84848,703030,000000,t,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,000000,f08080,f08080,703030,703030,703030,703030,703030,f08080,f08080,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,c84848,c84848,703030,703030,703030,703030,703030,c84848,c84848,000000,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,000000,c84848,f08080,f08080,f08080,f08080,f08080,f08080,f08080,c84848,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,c84848,c84848,c84848,f08080,f08080,f08080,c84848,c84848,c84848,000000,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,000000,c88848,c88848,c88848,000000,000000,000000,c88848,c88848,c88848,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,c88848,c88848,705030,000000,000000,000000,705030,c88848,c88848,000000,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,000000,f0b880,f0b880,000000,t,t,t,000000,f0b880,f0b880,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,f0b880,f0b880,000000,t,t,t,000000,f0b880,f0b880,000000,t,t,t,t,t,t,t,t,t,t,t,
+					t,t,t,t,t,t,t,t,t,t,t,000000,000000,t,t,t,t,t,000000,000000,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,000000,000000,t,t,t,t,t,000000,000000,t,t,t,t,t,t,t,t,t,t,t,t,
 					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,
 					t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t
 				}

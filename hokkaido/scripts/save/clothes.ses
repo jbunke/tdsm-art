@@ -3,13 +3,14 @@
     ~ string[] TOPS = [ "vest", "blouse" ];
     ~ string[] BOTTOMS = [ "slacks", "shorts" ];
     ~ string[] SHOES = [ "simple" ];
-    ~ string[] OUTFITS = [ "farmer-1", "gi" ];
+    ~ string[] OUTFITS = [ "farmer-1", "gi", "snowsuit" ];
 
     ~ {string:int} MAP = {
         "vest" : 2, 
         "blouse" : 2, 
         "farmer-1" : 3, 
-        "gi" : 2
+        "gi" : 2, 
+        "snowsuit" : 2
     };
 
     ~ int start_bottoms = #| TOPS;

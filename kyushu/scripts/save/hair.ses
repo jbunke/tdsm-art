@@ -8,7 +8,8 @@
         "cote-d'azur", "gemeas", "business", "sweep", "jackie", "cowlick", 
         "lego-man", "seance", "chopstick-bun", "ponytail", "done-up", 
         "magnate", "slicked-mullet", "waxed", "widow's-peak", "mad-scientist", 
-        "dragon-master", "warrior", "tomboy", "jardin", "psychic"
+        "dragon-master", "warrior", "tomboy", "jardin", "psychic", "heli-pad", 
+        "waves", "afro"
     ];
 
     ~ {string:int} MAP = {
