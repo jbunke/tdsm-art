@@ -1,0 +1,13 @@
+// Run while Kyushu example is the active project
+() {
+    ~ string script_path = "./anim-preview.ses";
+    ~ image source = $SE.get_project().get_layer().get_cel(0);
+
+    string[] anims = [ "walk", "idle", "run", "cycle", "surf" ];
+    {string:int} anim_map = {
+        "walk" : 3, "idle" : 1, "run" : 3, "cycle" : 3, "surf" : 2
+    };
+
+    ~ script s = $SE.read_script(script_path);
+    s.run(source, anims, anim_map, 40, 40);
+}

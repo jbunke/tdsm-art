@@ -1,0 +1,76 @@
+(~ image source, ~ string[] anims, ~ {string:int} anim_map, ~ int sprite_w, ~ int sprite_h) {
+    ~ int n_anims = #| anims;
+    ~ int CELS = 32;
+
+    ~ int w = sprite_w * n_anims;
+    ~ int anim_w = sprite_w * 4;
+
+    ~ project p = $SE.new_project(w, sprite_h);
+
+    ~ color COL_BG = #b7cbe6;
+
+    ~ image bg_img = new_image_of(w, sprite_h);
+    bg_img.fill(COL_BG, 0, 0, w, sprite_h);
+
+    ~ layer bg = p.get_layer();
+    bg.link_cels();
+    bg.set_cel(0, bg_img);
+
+    while (p.get_frame_count() < CELS) p.add_frame();
+
+    for (int i = 0; i < n_anims; i++) {
+        string anim = anims[i];
+
+        int frames = anim_map.lookup(anim);
+        image anim_source = source.section(i * anim_w, 0, anim_w, sprite_h * frames);
+        project ap = prep_anim(anim_source, frames, sprite_w, sprite_h, i, n_anims);
+
+        p.add_layer();
+
+        for (int c = 0; c < CELS; c++) {
+            layer l = p.get_layer();
+            l.set_cel(c, ap.get_layer().get_cel(c));
+        }
+
+        if (i > 0) p.merge_with_below();
+    }
+
+    p.pad(0, 0, 0, (int) (sprite_h * 0.25));
+}
+
+prep_anim(~ image source, ~ int frames, ~ int sprite_w, ~ int sprite_h, ~ int i, ~ int n -> project) {
+    ~ int w = source.w;
+    ~ int h = sprite_h * 4;
+
+    ~ image all = new_image_of(w, h);
+    all.draw(source, 0, 0);
+
+    when (frames) {
+        is 3 -> all.draw(get_row(source, 1, sprite_h), 0, 3 * sprite_h);
+        is 2 -> all.draw(source, 0, 2 * sprite_h);
+        is 1 -> {
+            for (int i = 1; i <= 3; i++)
+                all.draw(source, 0, i * sprite_h);
+        }
+    }
+
+    project p = $SE.new_project(w, h, false);
+    layer l = p.get_layer();
+    l.set_cel(0, all);
+    p.duplicate_frame();
+    p.stitch(2, $SE.VERT);
+
+    p.split(4, 8, $SE.VERT, false, false);
+
+    ~ int left = i;
+    ~ int right = (n - 1) - i;
+
+    p.pad(left * sprite_w, right * sprite_w, 0, 0);
+
+    return p;
+}
+
+get_row(~ image source, ~ int i, ~ int sprite_h -> image) -> get_rows(source, i, 1, sprite_h)
+
+get_rows(~ image source, ~ int i, ~ int rows, ~ int sprite_h -> image) 
+        -> source.section(0, i * sprite_h, source.w, sprite_h * rows)
