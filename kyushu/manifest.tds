@@ -1,5 +1,5 @@
 (-> style) {
-    string id = "kyushu-b"; // TODO - just "kyushu"
+    string id = "pokemon-gen-3";
     int[] dims = [ 40, 40 ];
     string[] directions = ["S", "W", "E", "N"];
     bool orientation = $TDSM.HORZ;
@@ -111,12 +111,19 @@ define_layers(
     
     ~ layer hat_back = build_dcl("hat-back", hat_layer, -1);
 
-    // TODO - hat mask
-    // TODO - hat back mask
+    ~ layer hat_mask = $Init.mask_layer("hat-mask", 
+            [ hair_layer ], hat_layer.naive_mask_logic(
+                s -> fetch_asset("hat-mask", s)));
+    ~ layer hat_back_mask = $Init.mask_layer("hat-back-mask", 
+            [ hair_back ], hat_back.naive_mask_logic(
+                s -> fetch_asset("hat-back-mask", s)));
+
     // TODO - clothing type
     // TODO - clothing logic and sub-layers
 
-    // TODO - capsule
+    ~ layer capsule_layer = build_acl("capsule", [ 5, 5 ], 
+            l -> get_choices(l, s -> clothes_choice(s, capsule_cols)), 
+            $Init.no_choice_invalid(), sh -> compose_capsule(sh, dims), [ 0, 0 ]);
 
     ~ layer combined_head_back = $Init.composed_layer(
         "combined-head-back", id -> {
@@ -125,9 +132,8 @@ define_layers(
             preassembled.draw(hat_back.compose().call(id), 0, 0);
 
             ~ image hair_b = hair_back.compose().call(id);
-            // TODO - hat back mask
-
-            preassembled.draw(hair_b, 0, 0);
+            ~ image hat_b_mask = hat_back_mask.compose().call(id);
+            preassembled.draw($ColorProc.alpha_mask(hair_b, hat_b_mask), 0, 0);
 
             ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
             return compose_head(combined, dims, directions).call(id);
@@ -136,16 +142,16 @@ define_layers(
 
     ~ layer combined_head = $Init.composed_layer(
         "combined-head", id -> {
-            // here
             ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[0], HEAD_SHEET_DIMS[1]);
 
             preassembled.draw(head_layer.compose().call(id), 0, 0);
             preassembled.draw(eye_layer.compose().call(id), 0, 0);
 
             ~ image hair = hair_layer.compose().call(id);
-            // TODO - hat mask
+            ~ image hat_m = hat_mask.compose().call(id);
 
-            preassembled.draw(hair, 0, 0);
+            preassembled.draw($ColorProc.alpha_mask(hair, hat_m), 0, 0);
+
             preassembled.draw(hat_layer.compose().call(id), 0, 0);
             preassembled.draw(hair_front.compose().call(id), 0, 0);
 
@@ -159,17 +165,17 @@ define_layers(
     ~ layer<> custom = <
         skin_layer, body_layer, head_layer, 
         eye_layer, eye_color_layer, eye_height, hair_layer/*, 
-        clothing_type_layer, clothing_layer*/, hat_layer/*, capsule_layer*/
+        clothing_type_layer, clothing_layer*/, hat_layer, capsule_layer
     >;
     ~ layer<> assembly = <
         combined_head_back, body_layer/*, clothing_logic */, 
-        combined_head/*, capsule_layer*/
+        combined_head, capsule_layer
     >;
 
     return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
 }
 
-name(-> string) -> "Kyushu B"
+name(-> string) -> "Pokémon [Gen 3]"
 
 info(-> string) -> "Based on Pokemon FireRed & LeafGreen (and to a\n" + 
         "lesser extent on Pokemon Ruby/Sapphire/Emerald)"
@@ -385,6 +391,40 @@ compose_on_head(~ sheet sh, ~ int aug_y, ~ bool copy_tilted_down -> (string -> i
         }
 
         return dest;
+    };
+}
+
+compose_capsule(~ sheet sh, ~ int[] dims -> (string -> image)) {
+    return id -> {
+        ~ image sprite = new_image_of(dims[0], dims[1]);
+
+        ~ string[] split = id.split("-");
+        ~ string dir = convert_dir(split[0]);
+        ~ string anim_id = split[1];
+        ~ int frame = (int) split[2];
+
+        if (anim_id != "use_capsule" || dir != $TDSM.S || frame == 0)
+            return sprite;
+        
+        int x = 0; int y = 0;
+
+        when (frame) {
+            is 1 -> {
+                x = 15;
+                y = 25;
+            }
+            is 2 -> {
+                x = 22;
+                y = 24;
+            }
+            is 3 -> {
+                x = 23;
+                y = 21;
+            }
+        }
+
+        sprite.draw(sh.source, x, y);
+        return sprite;
     };
 }
 
