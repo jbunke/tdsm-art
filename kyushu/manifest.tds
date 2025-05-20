@@ -56,6 +56,11 @@ define_layers(
         $Init.col_sel("Accessory", true, clothes_swatches), 
         $Init.col_sel("Acc. 2", true, clothes_swatches)
     ];
+    ~ col_sel[] hat_cols = get_clothes_sels(4, clothes_swatches);
+    ~ col_sel[] top_cols = get_clothes_sels(4, clothes_swatches);
+    ~ col_sel[] bottom_cols = get_clothes_sels(4, clothes_swatches);
+    ~ col_sel[] shoes_cols = get_clothes_sels(2, clothes_swatches);
+    ~ col_sel[] capsule_cols = get_clothes_sels(3, clothes_swatches);
 
     // AUX
 
@@ -101,8 +106,11 @@ define_layers(
     ~ layer hair_back = build_dcl("hair-back", hair_layer, -1);
     ~ layer hair_front = build_dcl("hair-front", hair_layer, 1);
 
-    // TODO - hat
-    // TODO - hat back
+    ~ layer hat_layer = build_clothes("hat", HEAD_DIMS, 
+            hat_cols, 0.75, ::simple_on_head, [ 0, 0 ]);
+    
+    ~ layer hat_back = build_dcl("hat-back", hat_layer, -1);
+
     // TODO - hat mask
     // TODO - hat back mask
     // TODO - clothing type
@@ -114,7 +122,7 @@ define_layers(
         "combined-head-back", id -> {
             ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[0], HEAD_SHEET_DIMS[1]);
 
-            // TODO - hat back
+            preassembled.draw(hat_back.compose().call(id), 0, 0);
 
             ~ image hair_b = hair_back.compose().call(id);
             // TODO - hat back mask
@@ -138,7 +146,7 @@ define_layers(
             // TODO - hat mask
 
             preassembled.draw(hair, 0, 0);
-            // TODO - hat
+            preassembled.draw(hat_layer.compose().call(id), 0, 0);
             preassembled.draw(hair_front.compose().call(id), 0, 0);
 
             ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
@@ -151,7 +159,7 @@ define_layers(
     ~ layer<> custom = <
         skin_layer, body_layer, head_layer, 
         eye_layer, eye_color_layer, eye_height, hair_layer/*, 
-        clothing_type_layer, clothing_layer, hat_layer, capsule_layer*/
+        clothing_type_layer, clothing_layer*/, hat_layer/*, capsule_layer*/
     >;
     ~ layer<> assembly = <
         combined_head_back, body_layer/*, clothing_logic */, 
@@ -176,6 +184,17 @@ build_dcl(
     );
 }
 
+build_clothes(
+    ~ string layer_id, ~ int[] dims, ~ col_sel[] sels, ~ float nc_prob, 
+    ~ (sheet -> (string -> image)) composer, ~ int[] preview_coord -> 
+    layer
+) {
+    return build_acl(
+        layer_id, dims, l -> get_choices(l, s -> clothes_choice(s, sels)), 
+        $Init.no_choice_prob(nc_prob), composer, preview_coord
+    );
+}
+
 build_acl(
     ~ string layer_id, ~ int[] dims, ~ (string -> asset_choice[]) choice_generator, 
     ~ no_choice nc, ~ (sheet -> (string -> image)) composer, ~ int[] preview_coord ->
@@ -185,6 +204,25 @@ build_acl(
         layer_id, dims, s -> fetch_asset(layer_id, s), 
         choice_generator.call(layer_id), nc, composer, preview_coord
     );
+}
+
+get_clothes_sels(~ int n, ~ color[] clothes_swatches -> col_sel[]) {
+    ~ col_sel[] sels = new col_sel[n];
+
+    for (int i = 0; i < n; i++) {
+        string name;
+
+        when (i) {
+            is 0 -> name = "Main";
+            is 1 -> name = "Accent";
+            is 2 -> name = "3rd";
+            otherwise -> name = (i + 1) + "th";
+        }
+
+        sels[i] = $Init.col_sel(name, true, clothes_swatches);
+    }
+
+    return sels;
 }
 
 compose_head(~ sheet sh, ~ int[] dims, ~ string[] directions -> (string -> image)) {
@@ -223,15 +261,6 @@ convert_dir(~ string dir -> string) {
         is "left" -> return $TDSM.W;
         is "right" -> return $TDSM.E;
     }
-}
-
-shortener(~ int num_sels, ~ col_sel[] sels -> col_sel[]) {
-    ~ col_sel[] result = new col_sel[num_sels];
-
-    for (int i = 0; i < num_sels && i < #| sels; i++)
-        result[i] = sels[i];
-    
-    return result;
 }
 
 head_offset(~ string sprite_id -> int[]) {
@@ -378,7 +407,7 @@ get_choices(
 simple_choice(~ string id -> asset_choice) -> 
         $Init.asset_choice(id, ::replace, new col_sel[0])
 
-complex_choice(~ string input, (int -> col_sel[]) sel_getter -> asset_choice) {
+complex_choice(~ string input, ~ (int -> col_sel[]) sel_getter -> asset_choice) {
     ~ string[] split = input.split(":");
 
     ~ string id = split[0];
@@ -388,6 +417,26 @@ complex_choice(~ string input, (int -> col_sel[]) sel_getter -> asset_choice) {
         id, c -> replace_with_n_selections(c, num_sels), 
         sel_getter.call(num_sels)
     );
+}
+
+clothes_choice(~ string input, ~ col_sel[] sels -> asset_choice) {
+    ~ string[] split = input.split(":");
+
+    ~ string id = split[0];
+    ~ int num_sels = ((int) split[1]);
+
+    ~ col_sel[] shortened = shortener(num_sels, sels);
+
+    return $Init.asset_choice(id, ::clothes_replace, shortened);
+}
+
+shortener(~ int num_sels, ~ col_sel[] sels -> col_sel[]) {
+    ~ col_sel[] result = new col_sel[num_sels];
+
+    for (int i = 0; i < num_sels && i < #| sels; i++)
+        result[i] = sels[i];
+    
+    return result;
 }
 
 fetch_asset(~ string layer_id, ~ string id -> image) -> 
@@ -402,6 +451,31 @@ get_hair_selections(
         is 2 -> return [ hair_acc_cols[0], hair_cols ];
         otherwise -> return [ hair_cols ]; 
     }
+}
+
+clothes_replace(~ color input -> replacement) {
+    ~ color rgb_input = rgb_only(input);
+
+    int index = -1;
+    color b = #000000;
+
+    for (int i = 0; i < 4; i++) {
+        if (CLOTH(i).has(rgb_input)) {
+            index = i;
+            b = BASE_CLOTH(i);
+        }
+    }
+
+    ~ color base = b;
+
+    return $Init.replacement(index, c -> {
+        ~ float s_ratio = (c.sat * input.sat) / base.sat;
+        ~ float v_ratio = (c.val * input.val) / base.val;
+        ~ float s = clamp(0.0, s_ratio, 1.0);
+        ~ float v = clamp(0.0, v_ratio, 1.0);
+
+        return $ColorProc.hsv(c.hue, s, v, input.a);
+    });
 }
 
 replace(~ color c -> replacement) -> replace_with_n_selections(c, 0)
@@ -489,7 +563,7 @@ CLOTH(~ int index -> color{}) {
         is 0 -> {
             set.add(#f8b0b0);
             set.add(#c84848);
-            set.add(#705030);
+            set.add(#703030);
         }
         is 1 -> {
             set.add(#f8d4b0);
