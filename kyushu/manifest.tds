@@ -39,6 +39,7 @@ define_layers(
 
     // AUX
 
+    ~ int[] HEAD_DIMS = [ 20, 20 ];
     ~ (sheet -> (string -> image)) def_composer = 
             $Init.default_composer(directions, orientation, anims);
 
@@ -47,12 +48,27 @@ define_layers(
     ~ layer skin_layer = $Init.col_sel_layer("skin-color", [ skin_tones ]);
 
     ~ layer body_layer = build_acl("body", dims, l -> get_choices(l, ::simple_choice), 
-        $Init.no_choice_invalid(), def_composer, [ dims[0], 0 ]);
+            $Init.no_choice_invalid(), def_composer, [ dims[0], 0 ]);
     body_layer.add_influences([ skin_tones ]);
+
+    ~ layer head_layer = build_acl("head", HEAD_DIMS, 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
+            ::trivial_composer, [ 0, 0 ]);
+    head_layer.add_influences([ skin_tones ]);
+
+    ~ layer eye_height = $Init.math_layer("eye-height", -1, 1, 0, i -> {
+        when (i) {
+            is -1 -> return "Low";
+            is 1 -> return "High";
+            otherwise -> return "Average";
+        }
+    });
 
     // TODO
     
-    ~ layer<> custom = < skin_layer, body_layer >;
+    ~ layer<> custom = <
+        skin_layer, body_layer, head_layer, eye_height
+    >;
     ~ layer<> assembly = < body_layer >;
 
     return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
