@@ -495,11 +495,20 @@ complex_choice(~ string input, ~ (int -> col_sel[]) sel_getter -> asset_choice) 
 
     ~ string id = split[0];
     ~ int num_sels = ((int) split[1]) + 1;
+    ~ col_sel[] sels = sel_getter.call(num_sels);
 
-    return $Init.asset_choice(
-        id, c -> replace_with_n_selections(c, num_sels), 
-        sel_getter.call(num_sels)
-    );
+    return $Init.asset_choice(id, custom_replace(num_sels), sels);
+}
+
+custom_replace(int n -> (color -> replacement)) {
+    // TODO - fix when you correct lambda behaviour in DeltaScript
+    when (n) {
+        is 4 -> return c -> replace_with_n_selections(c, 4);
+        is 3 -> return c -> replace_with_n_selections(c, 3);
+        is 2 -> return c -> replace_with_n_selections(c, 2);
+        is 1 -> return c -> replace_with_n_selections(c, 1);
+        otherwise -> return c -> replace_with_n_selections(c, 0);
+    }
 }
 
 clothes_choice(~ string input, ~ col_sel[] sels -> asset_choice) {
