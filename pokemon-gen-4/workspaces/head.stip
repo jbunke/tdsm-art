@@ -4,7 +4,7 @@
 {frame_durations:1.0,1.0,1.0}
 {layers:
 	{layer:
-		{layer_name:Background}
+		{layer_name:head}
 		{is_enabled:true}
 		{is_linked:false}
 		{opacity:1.0}

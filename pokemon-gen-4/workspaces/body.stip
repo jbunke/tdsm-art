@@ -5,7 +5,7 @@
 {layers:
 	{layer:
 		{layer_name:study ref}
-		{is_enabled:true}
+		{is_enabled:false}
 		{is_linked:true}
 		{opacity:1.0}
 		{onion_skin:}
@@ -412,7 +412,7 @@
 		}
 	},
 	{layer:
-		{layer_name:main}
+		{layer_name:body}
 		{is_enabled:true}
 		{is_linked:false}
 		{opacity:1.0}
@@ -816,7 +816,7 @@
 	},
 	{layer:
 		{layer_name:head mask}
-		{is_enabled:true}
+		{is_enabled:false}
 		{is_linked:false}
 		{opacity:1.0}
 		{onion_skin:}
