@@ -1,0 +1,703 @@
+(-> style) {
+    string id = "pokemon-gen-4";
+    int[] dims = [ 48, 48 ];
+    string[] directions = ["S", "W", "E", "N"];
+    bool orientation = $TDSM.HORZ;
+    anim[] anims = define_anims(orientation);
+    {bool : layer<>} layers = define_layers(dims, directions, orientation, anims);
+
+    return $Init.style(id, dims, directions, orientation, anims, layers);
+}
+
+// SPECIFIED METADATA FUNCTIONS
+
+name(-> string) -> "Pokémon [Gen 3]"
+
+info(-> string) -> "Based on Pokemon FireRed & LeafGreen (and to a\n" + 
+        "lesser extent on Pokemon Ruby/Sapphire/Emerald)"
+
+settings(-> string[]) -> [ "quantize_gba", "warn_rom_15_cols" ]
+
+preview_scale(-> int) -> 2
+
+// END OF METADATA
+
+define_anims(bool orientation -> anim[]) {
+    return [
+        $Init.anim("walk", [10, 10, 10], $Init.simple_frame_coord_func(0, 0, orientation), true), 
+        $Init.anim("idle", [12], $Init.simple_frame_coord_func(1, 0, orientation), false), 
+        $Init.anim("run", [ 6, 6, 6 ], $Init.simple_frame_coord_func(3, 0, orientation), true), 
+        $Init.anim("cycle", [6, 6, 6], $Init.simple_frame_coord_func(6, 0, orientation), true), 
+        $Init.anim("fish", [12, 12, 12, 12], $Init.simple_frame_coord_func(9, 0, orientation), false), 
+        $Init.anim("surf", [15, 15], $Init.simple_frame_coord_func(13, 0, orientation), false), 
+        $Init.anim("use_capsule", [12, 12, 12, 12], $Init.simple_frame_coord_func(15, 0, orientation), false)
+    ];
+}
+
+define_layers(
+    ~ int[] dims, ~ string[] directions, ~ bool orientation, ~ anim[] anims -> 
+    {bool : layer<>}
+) {
+    // SWATCHES
+
+    ~ color[] skin_swatches = [
+         #f8d0b8, #a88050, #c89060, #f8e0b8, 
+         #986860, #986840, #58402e 
+    ];
+    ~ color[] hair_swatches = [
+        #404040, #342820, #4b382c, #684828, 
+        #82662d, #b2864b, #c4b880, #dedbb8, 
+        #888480, #c4beb8
+    ];
+    ~ color[] eye_swatches = [
+        #7b4141, #8b8b94, #522041, #442525
+    ];
+    ~ color[] clothes_swatches = [
+        #cbcbce, #383838, #e06040, #4060e0,
+        #a040e0, #309ea4, #c0709c, #70c070,
+        #f8b020, #784040, #609038, #989090
+    ];
+
+    // COLOR SELECTIONS
+
+    ~ col_sel skin_tones = $Init.col_sel("Skin", true, skin_swatches);
+    ~ col_sel hair_cols = $Init.col_sel("Hair", true, hair_swatches);
+    ~ col_sel eyebrow_cols = $Init.col_sel("Brows", true, hair_swatches);
+    ~ col_sel eye_cols = $Init.col_sel("Eye", true, eye_swatches);
+
+    ~ col_sel[] hair_acc_cols = [
+        $Init.col_sel("Accessory", true, clothes_swatches), 
+        $Init.col_sel("Acc. 2", true, clothes_swatches)
+    ];
+    ~ col_sel[] hat_cols = get_clothes_sels(4, clothes_swatches);
+    ~ col_sel[] top_cols = get_clothes_sels(4, clothes_swatches);
+    ~ col_sel[] bottom_cols = get_clothes_sels(4, clothes_swatches);
+    ~ col_sel[] shoes_cols = get_clothes_sels(2, clothes_swatches);
+    ~ col_sel[] capsule_cols = get_clothes_sels(3, clothes_swatches);
+
+    // AUX
+
+    ~ int[] HEAD_DIMS = [ 20, 20 ];
+    ~ int[] HEAD_SHEET_DIMS = [ 100, 20 ];
+    ~ (sheet -> (string -> image)) def_composer = 
+            $Init.default_composer(directions, orientation, anims);
+
+    // LAYERS
+
+    ~ layer skin_layer = $Init.col_sel_layer("skin-color", [ skin_tones ]);
+
+    ~ layer body_layer = build_acl("body", dims, l -> get_choices(l, ::simple_choice), 
+            $Init.no_choice_invalid(), def_composer, [ dims[0], 0 ]);
+    body_layer.add_influences([ skin_tones ]);
+
+    ~ layer head_layer = build_acl("head", HEAD_DIMS, 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
+            ::trivial_composer, [ 0, 0 ]);
+    head_layer.add_influences([ skin_tones ]);
+
+    ~ layer eye_height = $Init.math_layer("eye-height", -1, 1, 0, i -> {
+        when (i) {
+            is -1 -> return "Low";
+            is 1 -> return "High";
+            otherwise -> return "Average";
+        }
+    });
+
+    ~ layer eye_layer = build_acl("eyes", HEAD_DIMS, 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
+            sh -> compose_eyes(sh, eye_height), [ 0, 0 ]);
+    eye_layer.add_influences([ skin_tones, eyebrow_cols, eye_cols ]);
+
+    ~ layer eye_color_layer = $Init.col_sel_layer("eye-color", [ eyebrow_cols, eye_cols ]);
+
+    ~ layer hair_layer = build_acl("hair", HEAD_DIMS, 
+            l -> get_choices(l, s -> complex_choice(s, 
+                    i -> get_hair_selections(i, hair_acc_cols, hair_cols))), 
+            $Init.no_choice_equal(), ::simple_on_head, [ 0, 0 ]);
+    hair_layer.add_influences([ skin_tones, hair_cols ]);
+
+    ~ layer hair_back = build_dcl("hair-back", hair_layer, -1);
+    ~ layer hair_front = build_dcl("hair-front", hair_layer, 1);
+
+    ~ layer hat_layer = build_clothes("hat", HEAD_DIMS, 
+            hat_cols, 0.75, ::simple_on_head, [ 0, 0 ]);
+    
+    ~ layer hat_back = build_dcl("hat-back", hat_layer, -1);
+
+    ~ layer hat_mask = $Init.mask_layer("hat-mask", 
+            [ hair_layer ], hat_layer.naive_mask_logic(
+                s -> fetch_asset("hat-mask", s)));
+    ~ layer hat_back_mask = $Init.mask_layer("hat-back-mask", 
+            [ hair_back ], hat_back.naive_mask_logic(
+                s -> fetch_asset("hat-back-mask", s)));
+    
+    ~ string COMBINED_OUTFIT = "Combined outfit";
+    ~ layer clothing_type = $Init.choice_layer("outfit-type", 
+            [ "Separate articles", COMBINED_OUTFIT ]);
+
+    // clothing sub-layers
+
+    ~ layer dm_outfits = build_article("dm-outfit", top_cols, def_composer);
+    ~ layer dm_tops = build_article("dm-top", top_cols, def_composer);
+    ~ layer dm_bottoms = build_article("dm-bottom", bottom_cols, def_composer);
+    ~ layer dm_shoes = build_article("dm-shoes", shoes_cols, def_composer);
+    ~ layer dm_articles = $Init.group_layer("outfit", [ dm_tops, dm_bottoms, dm_shoes ]);
+
+    ~ layer df_outfits = build_article("df-outfit", top_cols, def_composer);
+    ~ layer df_tops = build_article("df-top", top_cols, def_composer);
+    ~ layer df_bottoms = build_article("df-bottom", bottom_cols, def_composer);
+    ~ layer df_shoes = build_article("df-shoes", shoes_cols, def_composer);
+    ~ layer df_articles = $Init.group_layer("outfit", [ df_tops, df_bottoms, df_shoes ]);
+
+    // parallel matchers for different body types
+
+    $Util.parallel_matchers(dm_outfits, df_outfits);
+    $Util.parallel_matchers(dm_tops, df_tops);
+    $Util.parallel_matchers(dm_bottoms, df_bottoms);
+    $Util.parallel_matchers(dm_shoes, df_shoes);
+
+    ~ layer clothing_logic = $Init.decision_layer("outfit", () -> {
+        ~ bool combined = clothing_type.get_choice() == COMBINED_OUTFIT;
+        ~ int choiceIndex = body_layer.get_choice_index();
+
+        when (choiceIndex) {
+            is 0 -> return combined ? dm_outfits : dm_articles;
+            otherwise -> return combined ? df_outfits : df_articles;
+        }
+    });
+    clothing_type.add_dependent(clothing_logic);
+    body_layer.add_dependent(clothing_logic);
+
+    ~ layer capsule_layer = build_acl("capsule", [ 5, 5 ], 
+            l -> get_choices(l, s -> clothes_choice(s, capsule_cols)), 
+            $Init.no_choice_invalid(), sh -> compose_capsule(sh, dims), [ 0, 0 ]);
+
+    ~ layer combined_head_back = $Init.composed_layer(
+        "combined-head-back", id -> {
+            ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[0], HEAD_SHEET_DIMS[1]);
+
+            preassembled.draw(hat_back.compose().call(id), 0, 0);
+
+            ~ image hair_b = hair_back.compose().call(id);
+            ~ image hat_b_mask = hat_back_mask.compose().call(id);
+            preassembled.draw($ColorProc.alpha_mask(hair_b, hat_b_mask), 0, 0);
+
+            ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
+            return compose_head(combined, dims, directions).call(id);
+        }
+    );
+
+    ~ layer combined_head = $Init.composed_layer(
+        "combined-head", id -> {
+            ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[0], HEAD_SHEET_DIMS[1]);
+
+            preassembled.draw(head_layer.compose().call(id), 0, 0);
+            preassembled.draw(eye_layer.compose().call(id), 0, 0);
+
+            ~ image hair = hair_layer.compose().call(id);
+            ~ image hat_m = hat_mask.compose().call(id);
+
+            preassembled.draw($ColorProc.alpha_mask(hair, hat_m), 0, 0);
+
+            preassembled.draw(hat_layer.compose().call(id), 0, 0);
+            preassembled.draw(hair_front.compose().call(id), 0, 0);
+
+            ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
+            return compose_head(combined, dims, directions).call(id);
+        }
+    );
+
+    // TODO - head mask
+    
+    ~ layer<> custom = <
+        skin_layer, body_layer, head_layer, 
+        eye_layer, eye_color_layer, eye_height, hair_layer, 
+        clothing_type, clothing_logic, hat_layer, capsule_layer
+    >;
+    ~ layer<> assembly = <
+        combined_head_back, body_layer, clothing_logic, 
+        combined_head, capsule_layer
+    >;
+
+    return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
+}
+
+trivial_composer(~ sheet sh -> (string -> image)) -> s -> sh.source
+
+build_dcl(
+    ~ string layer_id, ~ layer ref, ~ int rel_index -> layer
+) {
+    return $Init.dependent_layer(
+        layer_id, s -> fetch_asset(layer_id, s), ref, rel_index
+    );
+}
+
+build_article(
+    ~ string layer_id, ~ col_sel[] sels, ~ (sheet -> (string -> image)) composer -> 
+    layer
+) {
+    ~ int[] dims = [ 40, 40 ];
+    
+    return build_clothes(layer_id, dims, sels, 0.0, composer, [ dims[0], 0 ]);
+}
+
+build_clothes(
+    ~ string layer_id, ~ int[] dims, ~ col_sel[] sels, ~ float nc_prob, 
+    ~ (sheet -> (string -> image)) composer, ~ int[] preview_coord -> 
+    layer
+) {
+    return build_acl(
+        layer_id, dims, l -> get_choices(l, s -> clothes_choice(s, sels)), 
+        $Init.no_choice_prob(nc_prob), composer, preview_coord
+    );
+}
+
+build_acl(
+    ~ string layer_id, ~ int[] dims, ~ (string -> asset_choice[]) choice_generator, 
+    ~ no_choice nc, ~ (sheet -> (string -> image)) composer, ~ int[] preview_coord ->
+    layer
+) {
+    return $Init.asset_choice_layer(
+        layer_id, dims, s -> fetch_asset(layer_id, s), 
+        choice_generator.call(layer_id), nc, composer, preview_coord
+    );
+}
+
+get_clothes_sels(~ int n, ~ color[] clothes_swatches -> col_sel[]) {
+    ~ col_sel[] sels = new col_sel[n];
+
+    for (int i = 0; i < n; i++) {
+        string name;
+
+        when (i) {
+            is 0 -> name = "Main";
+            is 1 -> name = "Accent";
+            is 2 -> name = "3rd";
+            otherwise -> name = (i + 1) + "th";
+        }
+
+        sels[i] = $Init.col_sel(name, true, clothes_swatches);
+    }
+
+    return sels;
+}
+
+compose_head(~ sheet sh, ~ int[] dims, ~ string[] directions -> (string -> image)) {
+    ~ (string -> image) asset_fetcher = 
+            x_sheet(sh, id -> head_dir_x(id, directions));
+
+    return id -> {
+        ~ image sprite = new_image_of(dims[0], dims[1]);
+
+        ~ string[] split = id.split("-");
+        ~ string dir = convert_dir(split[0]);
+        ~ string anim_id = split[1];
+
+        if (anim_id == "use_capsule" && dir != $TDSM.S)
+            return sprite;
+        
+        ~ int[] offset = head_offset(id);
+        ~ int BASE_X = 10; ~ int BASE_Y = 10;
+        ~ int x = BASE_X + offset[0];
+        ~ int y = BASE_Y + offset[1];
+
+        sprite.draw(asset_fetcher.call(id), x, y);
+        return sprite;
+    };
+}
+
+convert_dir(~ string dir -> string) {
+    // TODO - API solution
+    when (dir) {
+        is $TDSM.S -> return "down";
+        is $TDSM.N -> return "up";
+        is $TDSM.W -> return "left";
+        is $TDSM.E -> return "right";
+        is "down" -> return $TDSM.S;
+        is "up" -> return $TDSM.N;
+        is "left" -> return $TDSM.W;
+        is "right" -> return $TDSM.E;
+    }
+}
+
+head_offset(~ string sprite_id -> int[]) {
+    ~ string[] split = sprite_id.split("-");
+    ~ string dir = convert_dir(split[0]);
+    ~ string anim_id = split[1];
+    ~ int frame = (int) split[2];
+
+    int anim_comp; int frame_comp; int x;
+
+    ~ (int -> int) rock3 = f -> f % 2 == 0 ? f - 1 : 0;
+    ~ (int -> int) fish_side = f -> {
+        when (f) {
+            is 0 -> return 3;
+            is 2 -> return 1;
+            otherwise -> return 2;
+        }
+    };
+
+    // x
+
+    when (anim_id) {
+        is "cycle" -> x = rock3.call(frame);
+        is "fish" -> {
+            when (dir) {
+                is $TDSM.S -> x = frame == 3 ? 0 : 1;
+                is $TDSM.N -> x = frame > 1 ? 0 : -1;
+                is $TDSM.E -> x = -fish_side.call(frame);
+                is $TDSM.W -> x = fish_side.call(frame);
+            }
+        }
+        is "use_capsule" -> x = frame == 1 || frame == 4 ? -1 : 0;
+        is "surf" -> {
+            when (dir) {
+                is $TDSM.W -> x = 1;
+                is $TDSM.E -> x = -1;
+                otherwise -> x = 0;
+            }
+        }
+        otherwise -> x = 0;
+    }
+
+    // animation Y offset component
+
+    when (anim_id) {
+        is "idle", "walk" -> {
+            when (dir) {
+                is $TDSM.S -> anim_comp = 2;
+                is $TDSM.N -> anim_comp = 4;
+                otherwise -> anim_comp = 3;
+            }
+        }
+        is "run" -> anim_comp = 2 + (dir == $TDSM.S ? 0 : 1);
+        is "cycle" -> anim_comp = 1 + (dir == $TDSM.N ? 1 : 0);
+        is "surf" -> {
+            when (dir) {
+                is $TDSM.S -> anim_comp = -6;
+                is $TDSM.N -> anim_comp = -4;
+                otherwise -> anim_comp = -5;
+            }
+        }
+        is "fish" -> anim_comp = dir == $TDSM.S ? -4 : 3;
+        is "use_capsule" -> anim_comp = 2;
+        otherwise -> anim_comp = 0;
+    }
+
+    // frame Y offset component
+
+    when (anim_id) {
+        is "walk", "run" -> frame_comp = frame != 1 ? 1 : 0;
+        is "surf" -> frame_comp = frame;
+        is "fish" -> {
+            when (dir) {
+                is $TDSM.N -> frame_comp = frame == 3 ? -1 : 0;
+                is $TDSM.S -> frame_comp = frame == 2 ? 1 : 0;
+                otherwise -> frame_comp = frame % 2 == 0 ? 1 : 0;
+            }
+        }
+        is "use_capsule" -> frame_comp = frame == 3 ? -1 : 0;
+        otherwise -> frame_comp = 0;
+    }
+
+    return [ x, anim_comp + frame_comp ];
+}
+
+head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
+    ~ string[] split = sprite_id.split("-");
+    ~ string dir = convert_dir(split[0]);
+    ~ string anim_id = split[1];
+
+    if (dir == $TDSM.S && anim_id == "run")
+        return 4;
+    
+    for (int i = 0; i < #| directions; i++)
+        if (dir == directions[i])
+            return i;
+    
+    return -1;
+}
+
+x_sheet(~ sheet sh, ~ (string -> int) x_func -> (string -> image)) -> 
+        id -> sh.sprite_at(x_func.call(id), 0)
+
+compose_eyes(~ sheet sh, ~ layer eye_height -> (string -> image)) -> 
+        compose_on_head(sh, -eye_height.get_value(), true)
+
+simple_on_head(~ sheet sh -> (string -> image)) -> compose_on_head(sh, 0, false)
+
+compose_on_head(~ sheet sh, ~ int aug_y, ~ bool copy_tilted_down -> (string -> image)) {
+    ~ int max = copy_tilted_down ? 4 : 5;
+
+    return id -> {
+        ~ image dest = new_image_of(100, 20);
+
+        for (int x = 0; x < max; x++) {
+            ~ image source = sh.sprite_at(x, 0);
+
+            dest.draw(source, x * 20, aug_y);
+
+            if (x == 0 && copy_tilted_down)
+                dest.draw(source, max * 20, aug_y);
+        }
+
+        return dest;
+    };
+}
+
+compose_capsule(~ sheet sh, ~ int[] dims -> (string -> image)) {
+    return id -> {
+        ~ image sprite = new_image_of(dims[0], dims[1]);
+
+        ~ string[] split = id.split("-");
+        ~ string dir = convert_dir(split[0]);
+        ~ string anim_id = split[1];
+        ~ int frame = (int) split[2];
+
+        if (anim_id != "use_capsule" || dir != $TDSM.S || frame == 0)
+            return sprite;
+        
+        int x = 0; int y = 0;
+
+        when (frame) {
+            is 1 -> {
+                x = 15;
+                y = 25;
+            }
+            is 2 -> {
+                x = 22;
+                y = 24;
+            }
+            is 3 -> {
+                x = 23;
+                y = 21;
+            }
+        }
+
+        sprite.draw(sh.source, x, y);
+        return sprite;
+    };
+}
+
+get_choices(
+    ~ string layer_id, ~ (string -> asset_choice) post_split_func -> 
+    asset_choice[]
+) {
+    ~ string csv = read_file("./bases/" + layer_id + "/" + layer_id + ".csv");
+    ~ string[] split = csv.split(",");
+    ~ int n = #| split;
+
+    ~ asset_choice[] choices = new asset_choice[n];
+
+    for (int i = 0; i < n; i++)
+        choices[i] = post_split_func.call(split[i]);
+    
+    return choices;
+}
+
+simple_choice(~ string id -> asset_choice) -> 
+        $Init.asset_choice(id, ::replace, new col_sel[0])
+
+complex_choice(~ string input, ~ (int -> col_sel[]) sel_getter -> asset_choice) {
+    ~ string[] split = input.split(":");
+
+    ~ string id = split[0];
+    ~ int num_sels = ((int) split[1]) + 1;
+    ~ col_sel[] sels = sel_getter.call(num_sels);
+
+    return $Init.asset_choice(id, custom_replace(num_sels), sels);
+}
+
+custom_replace(int n -> (color -> replacement)) {
+    // TODO - fix when you correct lambda behaviour in DeltaScript
+    when (n) {
+        is 4 -> return c -> replace_with_n_selections(c, 4);
+        is 3 -> return c -> replace_with_n_selections(c, 3);
+        is 2 -> return c -> replace_with_n_selections(c, 2);
+        is 1 -> return c -> replace_with_n_selections(c, 1);
+        otherwise -> return c -> replace_with_n_selections(c, 0);
+    }
+}
+
+clothes_choice(~ string input, ~ col_sel[] sels -> asset_choice) {
+    ~ string[] split = input.split(":");
+
+    ~ string id = split[0];
+    ~ int num_sels = ((int) split[1]);
+
+    ~ col_sel[] shortened = shortener(num_sels, sels);
+
+    return $Init.asset_choice(id, ::clothes_replace, shortened);
+}
+
+shortener(~ int num_sels, ~ col_sel[] sels -> col_sel[]) {
+    ~ col_sel[] result = new col_sel[num_sels];
+
+    for (int i = 0; i < num_sels && i < #| sels; i++)
+        result[i] = sels[i];
+    
+    return result;
+}
+
+fetch_asset(~ string layer_id, ~ string id -> image) -> 
+        read_image("./bases/" + layer_id + "/" + id + ".png")
+
+get_hair_selections(
+    ~ int num_sels, ~ col_sel[] hair_acc_cols, ~ col_sel hair_cols ->
+    col_sel[]
+) {
+    when (num_sels) {
+        is 3 -> return [ hair_acc_cols[0], hair_acc_cols[1], hair_cols ];
+        is 2 -> return [ hair_acc_cols[0], hair_cols ];
+        otherwise -> return [ hair_cols ]; 
+    }
+}
+
+clothes_replace(~ color input -> replacement) {
+    ~ color rgb_input = rgb_only(input);
+
+    int index = -1;
+    color b = #000000;
+
+    for (int i = 0; i < 4; i++) {
+        if (CLOTH(i).has(rgb_input)) {
+            index = i;
+            b = BASE_CLOTH(i);
+        }
+    }
+
+    ~ color base = b;
+
+    return $Init.replacement(index, c -> {
+        ~ float s_ratio = (c.sat * input.sat) / base.sat;
+        ~ float v_ratio = (c.val * input.val) / base.val;
+        ~ float s = clamp(0.0, s_ratio, 1.0);
+        ~ float v = clamp(0.0, v_ratio, 1.0);
+
+        return $ColorProc.hsv(c.hue, s, v, input.a);
+    });
+}
+
+replace(~ color c -> replacement) -> replace_with_n_selections(c, 0)
+
+replace_with_n_selections(~ color input, ~ int n -> replacement) {
+    ~ color rgb_input = rgb_only(input);
+
+    int index = -1;
+    color b = #000000;
+
+    ~ color{}<> REPLS = <>;
+    ~ color[] BASES =  new color[4];
+
+    for (int i = 0; i < 4; i++) {
+        BASES[i] = BASE_CLOTH(i);
+        REPLS.add(CLOTH(i));
+    }
+
+    ~ bool is_skin = SKIN().has(rgb_input);
+    ~ bool is_outline = OUTLINE().has(rgb_input);
+    ~ bool is_hair = HAIR().has(rgb_input);
+    ~ bool is_iris = IRIS().has(rgb_input);
+    ~ bool is_ew = EYE_WHITE().has(rgb_input);
+    
+    bool found = false;
+    for (int i = 0; i < n && !found; i++) {
+        ~ color{} REPL = REPLS<i>;
+
+        if (REPL.has(rgb_input)) {
+            index = i;
+            b = BASES[i];
+            found = true;
+        }
+    }
+
+    if (is_skin || is_outline) {
+        index = n;
+        b = BASE_SKIN();
+    } else if (is_hair) {
+        index = n + 1;
+        b = BASE_HAIR();
+    } else if (is_iris) {
+        index = n + 2;
+        b = BASE_IRIS();
+    } else if (is_ew) {
+        index = n + 3;
+        b = BASE_EYE_WHITE();
+    }
+
+    ~ color base = b;
+
+    return $Init.replacement(index, c -> {
+        ~ float s_ratio = (c.sat * input.sat) / base.sat;
+        ~ float v_ratio = (c.val * input.val) / base.val;
+        ~ float s = clamp(0.0, s_ratio, 1.0);
+        ~ float v = clamp(0.0, v_ratio, 1.0);
+
+        if (is_outline) {
+            ~ float hue_diff = base.hue - input.hue;
+            ~ float hue = $ColorProc.normalize_hue(c.hue - hue_diff);
+
+            return $ColorProc.hsv(hue, s, v);
+        }
+
+        return $ColorProc.hsv(c.hue, s, v, input.a);
+    });
+}
+
+rgb_only(~ color c -> color) -> rgb(c.r, c.g, c.b)
+
+SKIN(-> color{}) -> { BASE_SKIN(), #98e898, #70d870 }
+
+OUTLINE(-> color{}) -> {  #557840, #364030 }
+
+HAIR(-> color{}) -> { BASE_HAIR(), #8080f0, #4848c8, #303070 }
+
+IRIS(-> color{}) -> { BASE_IRIS(), #884848 }
+
+EYE_WHITE(-> color{}) -> { BASE_EYE_WHITE(), #a8d8d8 }
+
+CLOTH(~ int index -> color{}) {
+    ~ color{} set = { BASE_CLOTH(index) };
+    
+    when (index) {
+        is 0 -> {
+            set.add(#f8b0b0);
+            set.add(#c84848);
+            set.add(#703030);
+        }
+        is 1 -> {
+            set.add(#f8d4b0);
+            set.add(#c88848);
+            set.add(#705030);
+        }
+        is 2 -> {
+            set.add(#f8f8b0);
+            set.add(#c8c848);
+            set.add(#707030);
+        }
+        is 3 -> {
+            set.add(#d4f8b0);
+            set.add(#88c848);
+            set.add(#507030);
+        }
+    }
+
+    return set;
+}
+
+BASE_SKIN(-> color) -> #b8f8b8
+
+BASE_HAIR(-> color) -> #b0b0f8
+
+BASE_IRIS(-> color) -> #ff0000
+
+BASE_EYE_WHITE(-> color) -> #00ffff
+
+BASE_CLOTH(~ int index -> color) {
+    when (index) {
+        is 0 -> return #f08080;
+        is 1 -> return #f0b880;
+        is 2 -> return #f0f080;
+        is 3 -> return #b8f080;
+    }
+}

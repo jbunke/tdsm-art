@@ -9,6 +9,19 @@
     return $Init.style(id, dims, directions, orientation, anims, layers);
 }
 
+// SPECIFIED METADATA FUNCTIONS
+
+name(-> string) -> "Pokémon [Gen 3]"
+
+info(-> string) -> "Based on Pokemon FireRed & LeafGreen (and to a\n" + 
+        "lesser extent on Pokemon Ruby/Sapphire/Emerald)"
+
+settings(-> string[]) -> [ "quantize_gba", "warn_rom_15_cols" ]
+
+preview_scale(-> int) -> 2
+
+// END OF METADATA
+
 define_anims(bool orientation -> anim[]) {
     return [
         $Init.anim("walk", [10, 10, 10], $Init.simple_frame_coord_func(0, 0, orientation), true), 
@@ -208,11 +221,6 @@ define_layers(
 
     return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
 }
-
-name(-> string) -> "Pokémon [Gen 3]"
-
-info(-> string) -> "Based on Pokemon FireRed & LeafGreen (and to a\n" + 
-        "lesser extent on Pokemon Ruby/Sapphire/Emerald)"
 
 trivial_composer(~ sheet sh -> (string -> image)) -> s -> sh.source
 

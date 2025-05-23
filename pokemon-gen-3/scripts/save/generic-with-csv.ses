@@ -1,6 +1,5 @@
 (~ string[] IDs, ~ {string:int} incidence, ~ string folder, ~ layer l) {
     ~ string art_folder = "../../bases/" + folder + "/";
-    ~ string program_folder = read_res_folder() + "hokkaido/" + folder + "/";
     ~ int to_save = #| IDs;
 
     string csv = "";
@@ -10,17 +9,13 @@
         ~ image content = l.get_cel(i);
 
         write_image(art_folder + id + ".png", content);
-        write_image(program_folder + id + ".png", content);
 
         csv += csv_entry(id, incidence);
         csv += (i + 1 < to_save) ? "," : "\n";
     }
 
     write_file(art_folder + folder + ".csv", csv);
-    write_file(program_folder + folder + ".csv", csv);
 }
 
 csv_entry(~ string id, ~ {string:int} incidence -> string) -> 
         id + (incidence.has(id) ? ":" + incidence.lookup(id) : "")
-
-read_res_folder(-> string) -> read_file("../../../../res-folder.txt")

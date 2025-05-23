@@ -45,7 +45,6 @@ csv_entry(~ string id, ~ {string:int} MAP -> string) ->
 
 save_csv(~ string csv, ~ string folder) {
     write_file("../../bases/" + folder + "/" + folder + ".csv", csv);
-    write_file(program_folder(folder) + folder + ".csv", csv);
 }
 
 save_article(~ layer clothes_layer, ~ int i, ~ string id, ~ string article) {
@@ -61,14 +60,9 @@ save_size(~ image content, ~ string id, ~ string article, ~ string prefix) {
     image anim = animate(content, prefix);
 
     ~ string art_folder = "../../bases/" + prefix + "-" + article + "/";
-    ~ string program_folder = program_folder(prefix + "-" + article);
     
     write_image(art_folder + id + ".png", anim);
-    write_image(program_folder + id + ".png", anim);
 }
-
-program_folder(~ string folder -> string) -> read_res_folder() + "kyushu/" + 
-        folder + "/"
 
 animate(~ image source, ~ string prefix -> image) {
     ~ string FOLDER = "../../workspaces/";
@@ -77,5 +71,3 @@ animate(~ image source, ~ string prefix -> image) {
 
     return $Graphics.uv_mapping(source, MAP, ANIM);
 }
-
-read_res_folder(-> string) -> read_file("../../../../res-folder.txt")
