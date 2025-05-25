@@ -8,7 +8,7 @@
     ~ string RUN_ID = "run"; ~ string FISH_ID = "fish";
     ~ string CYCLE_ID = "cycle"; ~ string BIKE_IDLE_ID = "bike_idle";
     ~ string SURF_ID = "surf"; ~ string SWIM_ID = "swim";
-    ~ string CAPSULE_ID = "pokemon";
+    ~ string CAPSULE_ID = "use_pokeball";
     anim[] anims = define_anims();
     {string : anim} anim_map = new {string : anim};
 
@@ -100,6 +100,17 @@
             otherwise -> return "Average";
         }
     });
+
+    // Reliant on global layers
+
+    ~ {string : sheet} head_masks = new {string : sheet};
+    ~ int body_choices = body_layer.num_choices();
+
+    for (int i = 0; i < body_choices; i++) {
+        ~ string choice = body_layer.get_choice_at(i);
+        ~ sheet hms = $Init.sheet(fetch_asset("head-mask", choice), dims[0], dims[1]);
+        head_masks.define(choice, hms);
+    }
 
     // Layers
     
@@ -611,11 +622,9 @@ head_mask_logic(~ string sprite_id -> image) {
     ~ string anim_id = $Util.extract_anim_id(sprite_id);
 
     when (anim_id) {
-        is CAPSULE_ID, SWIM_ID -> {
-            ~ image source = fetch_asset("head-mask", body_layer.get_choice());
-            ~ sheet head_mask_sheet = $Init.sheet(source, dims[0], dims[1]);
-            return def_composer.call(head_mask_sheet).call(sprite_id);
-        }
+        is CAPSULE_ID, SWIM_ID -> return def_composer
+                .call(head_masks.lookup(body_layer.get_choice()))
+                .call(sprite_id);
         otherwise -> return new_image_of(dims[0], dims[1]);
     }
 }
