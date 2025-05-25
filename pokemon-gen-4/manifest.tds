@@ -140,12 +140,12 @@ define_layers(
     ~ layer hair_back = build_dcl("hair-back", hair_layer, -1);
     ~ layer hair_front = build_dcl("hair-front", hair_layer, 1);
 
-    /*
     ~ layer hat_layer = build_clothes("hat", HEAD_DIMS, 
             hat_cols, 0.75, ::simple_on_head, [ 0, 0 ]);
     
     ~ layer hat_back = build_dcl("hat-back", hat_layer, -1);
 
+    /*
     ~ layer hat_mask = $Init.mask_layer("hat-mask", 
             [ hair_layer ], hat_layer.naive_mask_logic(
                 s -> fetch_asset("hat-mask", s)));
@@ -199,7 +199,7 @@ define_layers(
         "combined-head-back", id -> {
             ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[0], HEAD_SHEET_DIMS[1]);
 
-            // preassembled.draw(hat_back.compose().call(id), 0, 0);
+            preassembled.draw(hat_back.compose().call(id), 0, 0);
 
             image hair_b = hair_back.compose().call(id);
             // ~ image hat_b_mask = hat_back_mask.compose().call(id);
@@ -227,7 +227,7 @@ define_layers(
 
             preassembled.draw(hair, 0, 0);
 
-            // preassembled.draw(hat_layer.compose().call(id), 0, 0);
+            preassembled.draw(hat_layer.compose().call(id), 0, 0);
             preassembled.draw(hair_front.compose().call(id), 0, 0);
 
             ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
@@ -241,7 +241,7 @@ define_layers(
         skin_layer, body_layer, head_layer, 
         eye_layer, eye_color_layer, eye_height, 
         hair_layer, hair_color_layer/*, 
-        clothing_type, clothing_logic, hat_layer, capsule_layer*/
+        clothing_type, clothing_logic*/, hat_layer/*, capsule_layer*/
     >;
     ~ layer<> assembly = <
         combined_head_back, body_layer, /*clothing_logic, */
