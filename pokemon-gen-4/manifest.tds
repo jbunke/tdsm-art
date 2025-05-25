@@ -4,6 +4,11 @@
     string[] directions = ["S", "W", "E", "N"];
     bool orientation = $TDSM.HORZ;
 
+    ~ string WALK_ID = "walk"; ~ string IDLE_ID = "idle";
+    ~ string RUN_ID = "run"; ~ string FISH_ID = "fish";
+    ~ string CYCLE_ID = "cycle"; ~ string BIKE_IDLE_ID = "bike_idle";
+    ~ string SURF_ID = "surf"; ~ string SWIM_ID = "swim";
+    ~ string CAPSULE_ID = "pokemon";
     anim[] anims = define_anims();
     {string : anim} anim_map = new {string : anim};
 
@@ -118,7 +123,7 @@ preview_scale(-> int) -> 2
 
 define_anims(-> anim[]) {
     return [
-        $Init.anim("walk", [10, 10, 10], f -> {
+        $Init.anim(WALK_ID, [10, 10, 10], f -> {
             int x;
             when (f) {
                 is 0 -> x = 1;
@@ -127,12 +132,16 @@ define_anims(-> anim[]) {
             }
             return [ x, 0 ];
         }, true), 
-        $Init.anim("idle", [12], f -> [0, 0], false), 
-        $Init.anim("run", [ 6, 6, 6 ], $Init.simple_frame_coord_func(3, 0, orientation), true), 
-        // $Init.anim("cycle", [6, 6, 6], $Init.simple_frame_coord_func(6, 0, orientation), true), 
-        // $Init.anim("fish", [12, 12, 12, 12], $Init.simple_frame_coord_func(9, 0, orientation), false), 
-        $Init.anim("surf", [12], f -> [15, 0], false), 
-        $Init.anim("swim", [12, 12, 12], f -> {
+        $Init.anim(IDLE_ID, [12], f -> [0, 0], false), 
+        $Init.anim(RUN_ID, [ 6, 6, 6 ], 
+                $Init.simple_frame_coord_func(3, 0, orientation), true), 
+        $Init.anim(FISH_ID, [ 12, 12, 12, 12 ], 
+                $Init.simple_frame_coord_func(6, 0, orientation), false), 
+        $Init.anim(BIKE_IDLE_ID, [ 12 ], f -> [10, 0], true), 
+        $Init.anim(CYCLE_ID, [ 8, 8, 8, 8 ], 
+                $Init.simple_frame_coord_func(11, 0, orientation), true), 
+        $Init.anim(SURF_ID, [12], f -> [15, 0], false), 
+        $Init.anim(SWIM_ID, [12, 12, 12], f -> {
             int x;
             when (f) {
                 is 0 -> x = 1;
@@ -140,8 +149,9 @@ define_anims(-> anim[]) {
                 otherwise -> x = 2;
             }
             return [ 16 + x, 0 ];
-        }, true)
-        // $Init.anim("use_capsule", [12, 12, 12, 12], $Init.simple_frame_coord_func(15, 0, orientation), false)
+        }, true), 
+        $Init.anim(CAPSULE_ID, [ 12, 12, 12, 12 ], 
+                $Init.simple_frame_coord_func(19, 0, orientation), false)
     ];
 }
 
@@ -176,7 +186,6 @@ define_layers(-> {bool : layer<>}) {
     
     ~ layer hat_back = build_dcl("hat-back", hat_layer, -1);
 
-    /*
     ~ layer hat_mask = $Init.mask_layer("hat-mask", 
             [ hair_layer ], hat_layer.naive_mask_logic(
                 s -> fetch_asset("hat-mask", s)));
@@ -184,6 +193,7 @@ define_layers(-> {bool : layer<>}) {
             [ hair_back ], hat_back.naive_mask_logic(
                 s -> fetch_asset("hat-back-mask", s)));
     
+    /*
     ~ string COMBINED_OUTFIT = "Combined outfit";
     ~ layer clothing_type = $Init.choice_layer("outfit-type", 
             [ "Separate articles", COMBINED_OUTFIT ]);
@@ -233,10 +243,8 @@ define_layers(-> {bool : layer<>}) {
             preassembled.draw(hat_back.compose().call(id), 0, 0);
 
             image hair_b = hair_back.compose().call(id);
-            // ~ image hat_b_mask = hat_back_mask.compose().call(id);
-
-            // hair_b = $ColorProc.alpha_mask(hair_b, hat_b_mask);
-
+            ~ image hat_b_mask = hat_back_mask.compose().call(id);
+            hair_b = $ColorProc.alpha_mask(hair_b, hat_b_mask);
             preassembled.draw(hair_b, 0, 0);
 
             ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
@@ -252,10 +260,8 @@ define_layers(-> {bool : layer<>}) {
             preassembled.draw(eye_layer.compose().call(id), 0, 0);
 
             image hair = hair_layer.compose().call(id);
-            // ~ image hat_m = hat_mask.compose().call(id);
-
-            // hair = $ColorProc.alpha_mask(hair, hat_m);
-
+            ~ image hat_m = hat_mask.compose().call(id);
+            hair = $ColorProc.alpha_mask(hair, hat_m);
             preassembled.draw(hair, 0, 0);
 
             preassembled.draw(hat_layer.compose().call(id), 0, 0);
@@ -266,7 +272,8 @@ define_layers(-> {bool : layer<>}) {
         }
     );
 
-    // TODO - head mask
+    ~ layer head_mask = $Init.mask_layer("head-mask", 
+            [ combined_head_back, combined_head ], ::head_mask_logic);
     
     ~ layer<> custom = <
         skin_layer, body_layer, head_layer, 
@@ -276,7 +283,7 @@ define_layers(-> {bool : layer<>}) {
     >;
     ~ layer<> assembly = <
         combined_head_back, body_layer, /*clothing_logic, */
-        combined_head/*, head_mask*/
+        combined_head, head_mask
     >;
 
     return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
@@ -349,11 +356,10 @@ compose_head(~ sheet sh -> (string -> image)) {
     return id -> {
         ~ image sprite = new_image_of(dims[0], dims[1]);
 
-        ~ string[] split = id.split("-");
-        ~ string dir = convert_dir(split[0]);
-        ~ string anim_id = split[1];
+        ~ string dir = $Util.extract_direction(id);
+        ~ string anim_id = $Util.extract_anim_id(id);
 
-        if (anim_id == "use_capsule" && dir != $TDSM.S)
+        if (anim_id == CAPSULE_ID && dir != $TDSM.S)
             return sprite;
         
         ~ int[] offset = head_offset(id, body_layer);
@@ -366,30 +372,15 @@ compose_head(~ sheet sh -> (string -> image)) {
     };
 }
 
-convert_dir(~ string dir -> string) {
-    // TODO - API solution
-    when (dir) {
-        is $TDSM.S -> return "down";
-        is $TDSM.N -> return "up";
-        is $TDSM.W -> return "left";
-        is $TDSM.E -> return "right";
-        is "down" -> return $TDSM.S;
-        is "up" -> return $TDSM.N;
-        is "left" -> return $TDSM.W;
-        is "right" -> return $TDSM.E;
-    }
-}
-
 head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
-    ~ string[] split = sprite_id.split("-");
-    ~ string dir = convert_dir(split[0]);
-    ~ string anim_id = split[1];
-    ~ int frame = (int) split[2];
+    ~ string dir = $Util.extract_direction(sprite_id);
+    ~ string anim_id = $Util.extract_anim_id(sprite_id);
+    ~ int frame = $Util.extract_frame(sprite_id);
 
     int body_comp; int anim_comp; int frame_comp; int x = 0;
 
     when (anim_id) {
-        is "swim", "run", "cycle" -> body_comp = 0;
+        is SWIM_ID, RUN_ID, CYCLE_ID -> body_comp = 0;
         otherwise -> body_comp = body_layer.get_choice_index();
     }
 
@@ -400,14 +391,14 @@ head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
     // x
 
     when (anim_id) {
-        is "run" -> {
+        is RUN_ID -> {
             when (dir) {
                 is $TDSM.W -> x = -3 + run_func.call(frame);
                 is $TDSM.E -> x = 3 + run_func.call(frame);
                 otherwise -> x = run_func.call(frame);
             }
         }
-        is "fish" -> {
+        is FISH_ID -> {
             when (dir) {
                 is $TDSM.W -> x = -fish_side.call(frame);
                 is $TDSM.E -> x = fish_side.call(frame);
@@ -415,7 +406,7 @@ head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
                 is $TDSM.N -> x = frame < 3 ? -1 : 0;
             }
         }
-        is "bike_idle" -> {
+        is BIKE_IDLE_ID -> {
             when (dir) {
                 is $TDSM.W -> x = -1;
                 is $TDSM.E -> x = 1;
@@ -423,46 +414,46 @@ head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
                 is $TDSM.S -> x = 2;
             }
         }
-        is "cycle" -> {
+        is CYCLE_ID -> {
             when (dir) {
                 is $TDSM.W -> x = -2 + cycle_func.call(frame);
                 is $TDSM.E -> x = 2 - cycle_func.call(frame);
                 otherwise -> x = cycle_func.call(frame);
             }
         }
-        is "capsule" -> x = frame % 2 == 0 ? 0 : -1;
+        is CAPSULE_ID -> x = frame % 2 == 0 ? 0 : -1;
         otherwise -> x = 0;
     }
 
     // animation Y offset component
 
     when (anim_id) {
-        is "idle" -> anim_comp = 1;
-        is "run" -> anim_comp = dir == $TDSM.S ? 6 : 2;
-        is "fish", "bike_idle" -> {
+        is IDLE_ID -> anim_comp = 1;
+        is RUN_ID -> anim_comp = dir == $TDSM.S ? 6 : 2;
+        is FISH_ID, BIKE_IDLE_ID -> {
             when (dir) {
                 is $TDSM.W, $TDSM.E -> anim_comp = 1;
                 otherwise -> anim_comp = 0;
             }
         }
-        is "cycle" -> anim_comp = dir == $TDSM.S ? 1 : 0;
-        is "surf" -> {
+        is CYCLE_ID -> anim_comp = dir == $TDSM.S ? 1 : 0;
+        is SURF_ID -> {
             when (dir) {
                 is $TDSM.W, $TDSM.E -> anim_comp = 3;
                 is $TDSM.N -> anim_comp = 2;
                 is $TDSM.S -> anim_comp = 4;
             }
         }
-        is "swim" -> anim_comp = 7;
+        is SWIM_ID -> anim_comp = 7;
         otherwise -> anim_comp = 0;
     }
 
     // frame Y offset component
 
     when (anim_id) {
-        is "walk" -> frame_comp = frame == 1 ? 1 : 0;
-        is "run" -> frame_comp = frame == 1 ? (dir == $TDSM.S ? -1 : 1) : 0;
-        is "fish" -> {
+        is WALK_ID -> frame_comp = frame == 1 ? 1 : 0;
+        is RUN_ID -> frame_comp = frame == 1 ? (dir == $TDSM.S ? -1 : 1) : 0;
+        is FISH_ID -> {
             when (dir) {
                 is $TDSM.W, $TDSM.E -> frame_comp = frame == 3 ? 1 : 0;
                 is $TDSM.S -> {
@@ -482,13 +473,13 @@ head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
                 }
             }
         }
-        is "swim" -> {
+        is SWIM_ID -> {
             when (dir) {
                 is $TDSM.W, $TDSM.E -> frame_comp = frame != 1 ? 1 : 0;
                 otherwise -> frame_comp = 0;
             }
         }
-        is "use_capsule" -> {
+        is CAPSULE_ID -> {
             when (frame) {
                 is 0 -> frame_comp = 4;
                 is 1 -> frame_comp = 5;
@@ -502,10 +493,9 @@ head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
 }
 
 head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
-    ~ string[] split = sprite_id.split("-");
-    ~ string dir = convert_dir(split[0]);
-    ~ string anim_id = split[1];
-    ~ int frame = (int) split[2];
+    ~ string dir = $Util.extract_direction(sprite_id);
+    ~ string anim_id = $Util.extract_anim_id(sprite_id);
+    ~ int frame = $Util.extract_frame(sprite_id);
 
     if (dir == $TDSM.S && head_tilted_down(anim_id, frame))
         return 4;
@@ -519,9 +509,9 @@ head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
 
 head_tilted_down(~ string anim_id, ~ int frame -> bool) {
     when (anim_id) {
-        is "run", "cycle", "surf" -> return true;
-        is "fish" -> return frame == 2;
-        is "use_capsule" -> return frame < 2;
+        is RUN_ID, CYCLE_ID, SURF_ID -> return true;
+        is FISH_ID -> return frame == 2;
+        is CAPSULE_ID -> return frame < 2;
     }
 
     return false;
@@ -615,6 +605,19 @@ shortener(~ int num_sels, ~ col_sel[] sels -> col_sel[]) {
         result[i] = sels[i];
     
     return result;
+}
+
+head_mask_logic(~ string sprite_id -> image) {
+    ~ string anim_id = $Util.extract_anim_id(sprite_id);
+
+    when (anim_id) {
+        is CAPSULE_ID, SWIM_ID -> {
+            ~ image source = fetch_asset("head-mask", body_layer.get_choice());
+            ~ sheet head_mask_sheet = $Init.sheet(source, dims[0], dims[1]);
+            return def_composer.call(head_mask_sheet).call(sprite_id);
+        }
+        otherwise -> return new_image_of(dims[0], dims[1]);
+    }
 }
 
 fetch_asset(~ string layer_id, ~ string id -> image) -> 
