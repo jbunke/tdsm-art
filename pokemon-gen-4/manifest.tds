@@ -106,7 +106,7 @@ define_layers(
     ~ layer skin_layer = $Init.col_sel_layer("skin-color", [ skin_tones ]);
 
     ~ layer body_layer = build_acl("body", dims, l -> get_choices(l, ::simple_choice), 
-            $Init.no_choice_invalid(), def_composer, [ dims[0], 0 ]);
+            $Init.no_choice_invalid(), def_composer, [ 0, 0 ]);
     body_layer.add_influences([ skin_tones ]);
 
     ~ layer head_layer = build_acl("head", HEAD_DIMS, 
@@ -209,7 +209,7 @@ define_layers(
             preassembled.draw(hair_b, 0, 0);
 
             ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
-            return compose_head(combined, dims, directions).call(id);
+            return compose_head(combined, dims, directions, body_layer).call(id);
         }
     );
 
@@ -231,7 +231,7 @@ define_layers(
             preassembled.draw(hair_front.compose().call(id), 0, 0);
 
             ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[0], HEAD_DIMS[1]);
-            return compose_head(combined, dims, directions).call(id);
+            return compose_head(combined, dims, directions, body_layer).call(id);
         }
     );
 
@@ -311,7 +311,10 @@ get_clothes_sels(~ int n, ~ color[] clothes_swatches -> col_sel[]) {
     return sels;
 }
 
-compose_head(~ sheet sh, ~ int[] dims, ~ string[] directions -> (string -> image)) {
+compose_head(
+    ~ sheet sh, ~ int[] dims, ~ string[] directions, ~ layer body_layer -> 
+    (string -> image)
+) {
     ~ (string -> image) asset_fetcher = 
             x_sheet(sh, id -> head_dir_x(id, directions));
 
@@ -325,7 +328,7 @@ compose_head(~ sheet sh, ~ int[] dims, ~ string[] directions -> (string -> image
         if (anim_id == "use_capsule" && dir != $TDSM.S)
             return sprite;
         
-        ~ int[] offset = head_offset(id);
+        ~ int[] offset = head_offset(id, body_layer);
         ~ int BASE_X = 8; ~ int BASE_Y = 8;
         ~ int x = BASE_X + offset[0];
         ~ int y = BASE_Y + offset[1];
@@ -349,96 +352,135 @@ convert_dir(~ string dir -> string) {
     }
 }
 
-head_offset(~ string sprite_id -> int[]) {
+head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
     // TODO - this logic is for gen 3
     ~ string[] split = sprite_id.split("-");
     ~ string dir = convert_dir(split[0]);
     ~ string anim_id = split[1];
     ~ int frame = (int) split[2];
 
-    int anim_comp; int frame_comp; int x;
+    int body_comp; int anim_comp; int frame_comp; int x = 0;
 
-    ~ (int -> int) rock3 = f -> f % 2 == 0 ? f - 1 : 0;
-    ~ (int -> int) fish_side = f -> {
-        when (f) {
-            is 0 -> return 3;
-            is 2 -> return 1;
-            otherwise -> return 2;
-        }
-    };
+    when (anim_id) {
+        is "swim", "run", "cycle" -> body_comp = 0;
+        otherwise -> body_comp = body_layer.get_choice_index();
+    }
+
+    ~ (int -> int) cycle_func = f -> f % 2 == 0 ? 0 : f - 2;
+    ~ (int -> int) run_func = f -> f % 2 == 0 ? f - 1 : 0;
+    ~ (int -> int) fish_side = f -> (f < 2 ? -1 : 1) * (f % 3 == 0 ? 1 : 2);
 
     // x
 
     when (anim_id) {
-        is "cycle" -> x = rock3.call(frame);
+        is "run" -> {
+            when (dir) {
+                is $TDSM.W -> x = -3 + run_func.call(frame);
+                is $TDSM.E -> x = 3 + run_func.call(frame);
+                otherwise -> x = run_func.call(frame);
+            }
+        }
         is "fish" -> {
             when (dir) {
-                is $TDSM.S -> x = frame == 3 ? 0 : 1;
-                is $TDSM.N -> x = frame > 1 ? 0 : -1;
-                is $TDSM.E -> x = -fish_side.call(frame);
-                is $TDSM.W -> x = fish_side.call(frame);
+                is $TDSM.W -> x = -fish_side.call(frame);
+                is $TDSM.E -> x = fish_side.call(frame);
+                is $TDSM.S -> x = frame < 2 ? 1 : 0;
+                is $TDSM.N -> x = frame < 3 ? -1 : 0;
             }
         }
-        is "use_capsule" -> x = frame == 1 || frame == 4 ? -1 : 0;
-        is "surf" -> {
+        is "bike_idle" -> {
             when (dir) {
-                is $TDSM.W -> x = 1;
-                is $TDSM.E -> x = -1;
-                otherwise -> x = 0;
+                is $TDSM.W -> x = -1;
+                is $TDSM.E -> x = 1;
+                is $TDSM.N -> x = -2;
+                is $TDSM.S -> x = 2;
             }
         }
+        is "cycle" -> {
+            when (dir) {
+                is $TDSM.W -> x = -2 + cycle_func.call(frame);
+                is $TDSM.E -> x = 2 - cycle_func.call(frame);
+                otherwise -> x = cycle_func.call(frame);
+            }
+        }
+        is "capsule" -> x = frame % 2 == 0 ? 0 : -1;
         otherwise -> x = 0;
     }
 
     // animation Y offset component
 
     when (anim_id) {
-        is "idle", "walk" -> {
+        is "idle" -> anim_comp = 1;
+        is "run" -> anim_comp = dir == $TDSM.S ? 6 : 2;
+        is "fish", "bike_idle" -> {
             when (dir) {
-                is $TDSM.S -> anim_comp = 2;
-                is $TDSM.N -> anim_comp = 4;
-                otherwise -> anim_comp = 3;
+                is $TDSM.W, $TDSM.E -> anim_comp = 1;
+                otherwise -> anim_comp = 0;
             }
         }
-        is "run" -> anim_comp = 2 + (dir == $TDSM.S ? 0 : 1);
-        is "cycle" -> anim_comp = 1 + (dir == $TDSM.N ? 1 : 0);
+        is "cycle" -> anim_comp = dir == $TDSM.S ? 1 : 0;
         is "surf" -> {
             when (dir) {
-                is $TDSM.S -> anim_comp = -6;
-                is $TDSM.N -> anim_comp = -4;
-                otherwise -> anim_comp = -5;
+                is $TDSM.W, $TDSM.E -> anim_comp = 3;
+                is $TDSM.N -> anim_comp = 2;
+                is $TDSM.S -> anim_comp = 4;
             }
         }
-        is "fish" -> anim_comp = dir == $TDSM.S ? -4 : 3;
-        is "use_capsule" -> anim_comp = 2;
+        is "swim" -> anim_comp = 7;
         otherwise -> anim_comp = 0;
     }
 
     // frame Y offset component
 
     when (anim_id) {
-        is "walk", "run" -> frame_comp = frame != 1 ? 1 : 0;
-        is "surf" -> frame_comp = frame;
+        is "walk" -> frame_comp = frame == 1 ? 1 : 0;
+        is "run" -> frame_comp = frame == 1 ? (dir == $TDSM.S ? -1 : 1) : 0;
         is "fish" -> {
             when (dir) {
-                is $TDSM.N -> frame_comp = frame == 3 ? -1 : 0;
-                is $TDSM.S -> frame_comp = frame == 2 ? 1 : 0;
-                otherwise -> frame_comp = frame % 2 == 0 ? 1 : 0;
+                is $TDSM.W, $TDSM.E -> frame_comp = frame == 3 ? 1 : 0;
+                is $TDSM.S -> {
+                    when (frame) {
+                        is 0 -> frame_comp = 2;
+                        is 2 -> frame_comp = 5;
+                        is 3 -> frame_comp = 3;
+                        otherwise -> frame_comp = 1;
+                    }
+                }
+                is $TDSM.N -> {
+                    when (frame) {
+                        is 1 -> frame_comp = 4;
+                        is 2 -> frame_comp = 2;
+                        otherwise -> frame_comp = 3;
+                    }
+                }
             }
         }
-        is "use_capsule" -> frame_comp = frame == 3 ? -1 : 0;
+        is "swim" -> {
+            when (dir) {
+                is $TDSM.W, $TDSM.E -> frame_comp = frame != 1 ? 1 : 0;
+                otherwise -> frame_comp = 0;
+            }
+        }
+        is "use_capsule" -> {
+            when (frame) {
+                is 0 -> frame_comp = 4;
+                is 1 -> frame_comp = 5;
+                otherwise -> frame_comp = 1;
+            }
+        }
         otherwise -> frame_comp = 0;
     }
 
-    return [ x, anim_comp + frame_comp ];
+    return [ x, body_comp + anim_comp + frame_comp ];
 }
 
 head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
     ~ string[] split = sprite_id.split("-");
     ~ string dir = convert_dir(split[0]);
     ~ string anim_id = split[1];
+    ~ int frame = (int) split[2];
 
-    if (dir == $TDSM.S && anim_id == "run")
+    if (dir == $TDSM.S && head_tilted_down(anim_id, frame))
         return 4;
     
     for (int i = 0; i < #| directions; i++)
@@ -446,6 +488,16 @@ head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
             return i;
     
     return -1;
+}
+
+head_tilted_down(~ string anim_id, ~ int frame -> bool) {
+    when (anim_id) {
+        is "run", "cycle", "surf" -> return true;
+        is "fish" -> return frame == 2;
+        is "use_capsule" -> return frame < 2;
+    }
+
+    return false;
 }
 
 x_sheet(~ sheet sh, ~ (string -> int) x_func -> (string -> image)) -> 
