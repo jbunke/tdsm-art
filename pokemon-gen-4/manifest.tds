@@ -193,7 +193,7 @@ define_layers(-> {bool : layer<>}) {
     ~ layer hair_front = build_dcl("hair-front", hair_layer, 1);
 
     ~ layer hat_layer = build_clothes("hat", HEAD_DIMS, 
-            hat_cols, 0.75, ::simple_on_head, [ 0, 0 ]);
+            hat_cols, 0.75, ::simple_on_head);
     
     ~ layer hat_back = build_dcl("hat-back", hat_layer, -1);
 
@@ -204,44 +204,44 @@ define_layers(-> {bool : layer<>}) {
             [ hair_back ], hat_back.naive_mask_logic(
                 s -> fetch_asset("hat-back-mask", s)));
     
-    /*
     ~ string COMBINED_OUTFIT = "Combined outfit";
     ~ layer clothing_type = $Init.choice_layer("outfit-type", 
             [ "Separate articles", COMBINED_OUTFIT ]);
 
     // clothing sub-layers
 
-    ~ layer dm_outfits = build_article("dm-outfit", top_cols, def_composer);
-    ~ layer dm_tops = build_article("dm-top", top_cols, def_composer);
-    ~ layer dm_bottoms = build_article("dm-bottom", bottom_cols, def_composer);
-    ~ layer dm_shoes = build_article("dm-shoes", shoes_cols, def_composer);
-    ~ layer dm_articles = $Init.group_layer("outfit", [ dm_tops, dm_bottoms, dm_shoes ]);
+    ~ layer sm_outfits = build_article("sm-outfit", top_cols);
+    ~ layer sm_tops = build_article("sm-top", top_cols);
+    ~ layer sm_bottoms = build_article("sm-bottom", bottom_cols);
+    ~ layer sm_shoes = build_article("sm-shoes", shoes_cols);
+    ~ layer sm_articles = $Init.group_layer("outfit", [ sm_tops, sm_bottoms, sm_shoes ]);
 
-    ~ layer df_outfits = build_article("df-outfit", top_cols, def_composer);
-    ~ layer df_tops = build_article("df-top", top_cols, def_composer);
-    ~ layer df_bottoms = build_article("df-bottom", bottom_cols, def_composer);
-    ~ layer df_shoes = build_article("df-shoes", shoes_cols, def_composer);
-    ~ layer df_articles = $Init.group_layer("outfit", [ df_tops, df_bottoms, df_shoes ]);
+    ~ layer av_outfits = build_article("av-outfit", top_cols);
+    ~ layer av_tops = build_article("av-top", top_cols);
+    ~ layer av_bottoms = build_article("av-bottom", bottom_cols);
+    ~ layer av_shoes = build_article("av-shoes", shoes_cols);
+    ~ layer av_articles = $Init.group_layer("outfit", [ av_tops, av_bottoms, av_shoes ]);
 
     // parallel matchers for different body types
 
-    $Util.parallel_matchers(dm_outfits, df_outfits);
-    $Util.parallel_matchers(dm_tops, df_tops);
-    $Util.parallel_matchers(dm_bottoms, df_bottoms);
-    $Util.parallel_matchers(dm_shoes, df_shoes);
+    $Util.parallel_matchers(sm_outfits, av_outfits);
+    $Util.parallel_matchers(sm_tops, av_tops);
+    $Util.parallel_matchers(sm_bottoms, av_bottoms);
+    $Util.parallel_matchers(sm_shoes, av_shoes);
 
     ~ layer clothing_logic = $Init.decision_layer("outfit", () -> {
         ~ bool combined = clothing_type.get_choice() == COMBINED_OUTFIT;
-        ~ int choiceIndex = body_layer.get_choice_index();
+        ~ int choice_index = body_layer.get_choice_index();
 
-        when (choiceIndex) {
-            is 0 -> return combined ? dm_outfits : dm_articles;
-            otherwise -> return combined ? df_outfits : df_articles;
+        when (choice_index) {
+            is 0 -> return combined ? av_outfits : av_articles;
+            otherwise -> return combined ? sm_outfits : sm_articles;
         }
     });
     clothing_type.add_dependent(clothing_logic);
     body_layer.add_dependent(clothing_logic);
 
+    /*
     ~ layer capsule_layer = build_acl("capsule", [ 5, 5 ], 
             l -> get_choices(l, s -> clothes_choice(s, capsule_cols)), 
             $Init.no_choice_invalid(), sh -> compose_capsule(sh, dims), [ 0, 0 ]);
@@ -289,12 +289,12 @@ define_layers(-> {bool : layer<>}) {
     ~ layer<> custom = <
         skin_layer, body_layer, head_layer, 
         eye_layer, eye_color_layer, eye_height, 
-        hair_layer, hair_color_layer/*, 
-        clothing_type, clothing_logic*/, hat_layer/*, capsule_layer*/
+        hair_layer, hair_color_layer, 
+        clothing_type, clothing_logic, hat_layer/*, capsule_layer*/
     >;
     ~ layer<> assembly = <
-        combined_head_back, body_layer, /*clothing_logic, */
-        combined_head, head_mask
+        combined_head_back, body_layer, clothing_logic, 
+        combined_head, head_mask/*, capsule layer*/
     >;
 
     return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
@@ -310,23 +310,17 @@ build_dcl(
     );
 }
 
-build_article(
-    ~ string layer_id, ~ col_sel[] sels, ~ (sheet -> (string -> image)) composer -> 
-    layer
-) {
-    ~ int[] dims = [ 48, 48 ];
-    
-    return build_clothes(layer_id, dims, sels, 0.0, composer, [ dims[0], 0 ]);
-}
+build_article(~ string layer_id, ~ col_sel[] sels -> layer) -> 
+        build_clothes(layer_id, dims, sels, 0.0, def_composer)
 
 build_clothes(
     ~ string layer_id, ~ int[] dims, ~ col_sel[] sels, ~ float nc_prob, 
-    ~ (sheet -> (string -> image)) composer, ~ int[] preview_coord -> 
+    ~ (sheet -> (string -> image)) composer -> 
     layer
 ) {
     return build_acl(
         layer_id, dims, l -> get_choices(l, s -> clothes_choice(s, sels)), 
-        $Init.no_choice_prob(nc_prob), composer, preview_coord
+        $Init.no_choice_prob(nc_prob), composer, [ 0, 0 ]
     );
 }
 
