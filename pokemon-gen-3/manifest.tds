@@ -1,44 +1,46 @@
 (-> style) {
-    string id = "pokemon-gen-3";
-    int[] dims = [ 40, 40 ];
-    string[] directions = ["S", "W", "E", "N"];
-    bool orientation = $TDSM.HORZ;
-    anim[] anims = define_anims(orientation);
-    {bool : layer<>} layers = define_layers(dims, directions, orientation, anims);
+    ~ string id = "pokemon-gen-3";
+    ~ int[] dims = [ 40, 40 ];
+    ~ string[] directions = ["S", "W", "E", "N"];
+    ~ bool orientation = $TDSM.HORZ;
 
-    return $Init.style(id, dims, directions, orientation, anims, layers);
-}
+    ~ string WALK_ID = "walk"; ~ string IDLE_ID = "idle";
+    ~ string RUN_ID = "run"; ~ string FISH_ID = "fish";
+    ~ string CYCLE_ID = "cycle"; ~ string SURF_ID = "surf"; 
+    ~ string CAPSULE_ID = "use_pokeball";
+    anim[] anims = define_anims();
+    // {string : anim} anim_map = new {string : anim};
 
-// SPECIFIED METADATA FUNCTIONS
+    // for (a in anims)
+    //     anim_map.define(a.id, a);
 
-name(-> string) -> "Pokémon [Gen 3]"
+    // LAYER PREP
 
-info(-> string) -> "Based on Pokemon FireRed & LeafGreen (and to a\n" + 
-        "lesser extent on Pokemon Ruby/Sapphire/Emerald)"
+    // Colors
 
-settings(-> string[]) -> [ "quantize_gba", "warn_rom_15_cols" ]
+    ~ color BASE_SKIN = #b8f8b8;
+    ~ color BASE_HAIR = #b0b0f8;
+    ~ color BASE_IRIS = #ff0000;
+    ~ color BASE_EYE_WHITE = #00ffff;
 
-preview_scale(-> int) -> 2
-
-// END OF METADATA
-
-define_anims(bool orientation -> anim[]) {
-    return [
-        $Init.anim("walk", [10, 10, 10], $Init.simple_frame_coord_func(0, 0, orientation), true), 
-        $Init.anim("idle", [12], $Init.simple_frame_coord_func(1, 0, orientation), false), 
-        $Init.anim("run", [ 6, 6, 6 ], $Init.simple_frame_coord_func(3, 0, orientation), true), 
-        $Init.anim("cycle", [6, 6, 6], $Init.simple_frame_coord_func(6, 0, orientation), true), 
-        $Init.anim("fish", [12, 12, 12, 12], $Init.simple_frame_coord_func(9, 0, orientation), false), 
-        $Init.anim("surf", [15, 15], $Init.simple_frame_coord_func(13, 0, orientation), false), 
-        $Init.anim("use_capsule", [12, 12, 12, 12], $Init.simple_frame_coord_func(15, 0, orientation), false)
+    ~ color[] BASE_CLOTH = [
+        #f08080, #f0b880, #f0f080, #b8f080
     ];
-}
 
-define_layers(
-    ~ int[] dims, ~ string[] directions, ~ bool orientation, ~ anim[] anims -> 
-    {bool : layer<>}
-) {
-    // SWATCHES
+    ~ color{} SKIN = { BASE_SKIN, #98e898, #70d870 };
+    ~ color{} OUTLINE = {  #557840, #364030 };
+    ~ color{} HAIR = { BASE_HAIR, #8080f0, #4848c8, #303070 };
+    ~ color{} IRIS = { BASE_IRIS, #884848 };
+    ~ color{} EYE_WHITE = { BASE_EYE_WHITE, #a8d8d8 };
+
+    ~ color{}[] CLOTH = [
+        { BASE_CLOTH[0], #f8b0b0, #c84848, #703030 }, 
+        { BASE_CLOTH[1], #f8d4b0, #c88848, #705030 }, 
+        { BASE_CLOTH[2], #f8f8b0, #c8c848, #707030 }, 
+        { BASE_CLOTH[3], #d4f8b0, #88c848, #507030 }
+    ];
+
+    // Swatches
 
     ~ color[] skin_swatches = [
          #f8d0b8, #a88050, #c89060, #f8e0b8, 
@@ -58,7 +60,7 @@ define_layers(
         #f8b020, #784040, #609038, #989090
     ];
 
-    // COLOR SELECTIONS
+    // Color selections
 
     ~ col_sel skin_tones = $Init.col_sel("Skin", true, skin_swatches);
     ~ col_sel hair_cols = $Init.col_sel("Hair", true, hair_swatches);
@@ -69,21 +71,69 @@ define_layers(
         $Init.col_sel("Accessory", true, clothes_swatches), 
         $Init.col_sel("Acc. 2", true, clothes_swatches)
     ];
-    ~ col_sel[] hat_cols = get_clothes_sels(4, clothes_swatches);
-    ~ col_sel[] top_cols = get_clothes_sels(4, clothes_swatches);
-    ~ col_sel[] bottom_cols = get_clothes_sels(4, clothes_swatches);
-    ~ col_sel[] shoes_cols = get_clothes_sels(2, clothes_swatches);
-    ~ col_sel[] capsule_cols = get_clothes_sels(3, clothes_swatches);
+    ~ col_sel[] hat_cols = get_clothes_sels(4);
+    ~ col_sel[] top_cols = get_clothes_sels(4);
+    ~ col_sel[] bottom_cols = get_clothes_sels(4);
+    ~ col_sel[] shoes_cols = get_clothes_sels(2);
+    ~ col_sel[] capsule_cols = get_clothes_sels(3);
 
-    // AUX
+    // Aux
 
     ~ int[] HEAD_DIMS = [ 20, 20 ];
     ~ int[] HEAD_SHEET_DIMS = [ 100, 20 ];
     ~ (sheet -> (string -> image)) def_composer = 
             $Init.default_composer(directions, orientation, anims);
+    
+    // Globally referenced layers
 
-    // LAYERS
+    ~ layer eye_height = $Init.math_layer("eye-height", -1, 1, 0, i -> {
+        when (i) {
+            is -1 -> return "Low";
+            is 1 -> return "High";
+            otherwise -> return "Average";
+        }
+    });
 
+    // Layers
+
+    {bool : layer<>} layers = define_layers();
+
+    return $Init.style(id, dims, directions, orientation, anims, layers);
+}
+
+// SPECIFIED METADATA FUNCTIONS
+
+name(-> string) -> "Pokemon [Gen 3]"
+
+info(-> string) -> "Based on Pokemon FireRed & LeafGreen (and to a\n" + 
+        "lesser extent on Pokemon Ruby/Sapphire/Emerald)"
+
+settings(-> string[]) -> [ "quantize_gba", "warn_rom_15_cols" ]
+
+preview_scale(-> int) -> 2
+
+// END OF METADATA
+
+define_anims(-> anim[]) {
+    return [
+        $Init.anim(WALK_ID, [10, 10, 10], 
+                $Init.simple_frame_coord_func(0, 0, orientation), true), 
+        $Init.anim(IDLE_ID, [12], 
+                $Init.simple_frame_coord_func(1, 0, orientation), false), 
+        $Init.anim(RUN_ID, [ 6, 6, 6 ], 
+                $Init.simple_frame_coord_func(3, 0, orientation), true), 
+        $Init.anim(CYCLE_ID, [6, 6, 6], 
+                $Init.simple_frame_coord_func(6, 0, orientation), true), 
+        $Init.anim(FISH_ID, [12, 12, 12, 12], 
+                $Init.simple_frame_coord_func(9, 0, orientation), false), 
+        $Init.anim(SURF_ID, [15, 15], 
+                $Init.simple_frame_coord_func(13, 0, orientation), false), 
+        $Init.anim(CAPSULE_ID, [12, 12, 12, 12], 
+                $Init.simple_frame_coord_func(15, 0, orientation), false)
+    ];
+}
+
+define_layers(-> {bool : layer<>}) {
     ~ layer skin_layer = $Init.col_sel_layer("skin-color", [ skin_tones ]);
 
     ~ layer body_layer = build_acl("body", dims, l -> get_choices(l, ::simple_choice), 
@@ -95,24 +145,15 @@ define_layers(
             ::trivial_composer, [ 0, 0 ]);
     head_layer.add_influences([ skin_tones ]);
 
-    ~ layer eye_height = $Init.math_layer("eye-height", -1, 1, 0, i -> {
-        when (i) {
-            is -1 -> return "Low";
-            is 1 -> return "High";
-            otherwise -> return "Average";
-        }
-    });
-
     ~ layer eye_layer = build_acl("eyes", HEAD_DIMS, 
             l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
-            sh -> compose_eyes(sh, eye_height), [ 0, 0 ]);
+            ::compose_eyes, [ 0, 0 ]);
     eye_layer.add_influences([ skin_tones, eyebrow_cols, eye_cols ]);
 
     ~ layer eye_color_layer = $Init.col_sel_layer("eye-color", [ eyebrow_cols, eye_cols ]);
 
     ~ layer hair_layer = build_acl("hair", HEAD_DIMS, 
-            l -> get_choices(l, s -> complex_choice(s, 
-                    i -> get_hair_selections(i, hair_acc_cols, hair_cols))), 
+            l -> get_choices(l, s -> complex_choice(s, ::get_hair_selections)), 
             $Init.no_choice_equal(), ::simple_on_head, [ 0, 0 ]);
     hair_layer.add_influences([ skin_tones, hair_cols ]);
 
@@ -137,16 +178,16 @@ define_layers(
 
     // clothing sub-layers
 
-    ~ layer dm_outfits = build_article("dm-outfit", top_cols, def_composer);
-    ~ layer dm_tops = build_article("dm-top", top_cols, def_composer);
-    ~ layer dm_bottoms = build_article("dm-bottom", bottom_cols, def_composer);
-    ~ layer dm_shoes = build_article("dm-shoes", shoes_cols, def_composer);
+    ~ layer dm_outfits = build_article("dm-outfit", top_cols);
+    ~ layer dm_tops = build_article("dm-top", top_cols);
+    ~ layer dm_bottoms = build_article("dm-bottom", bottom_cols);
+    ~ layer dm_shoes = build_article("dm-shoes", shoes_cols);
     ~ layer dm_articles = $Init.group_layer("outfit", [ dm_tops, dm_bottoms, dm_shoes ]);
 
-    ~ layer df_outfits = build_article("df-outfit", top_cols, def_composer);
-    ~ layer df_tops = build_article("df-top", top_cols, def_composer);
-    ~ layer df_bottoms = build_article("df-bottom", bottom_cols, def_composer);
-    ~ layer df_shoes = build_article("df-shoes", shoes_cols, def_composer);
+    ~ layer df_outfits = build_article("df-outfit", top_cols);
+    ~ layer df_tops = build_article("df-top", top_cols);
+    ~ layer df_bottoms = build_article("df-bottom", bottom_cols);
+    ~ layer df_shoes = build_article("df-shoes", shoes_cols);
     ~ layer df_articles = $Init.group_layer("outfit", [ df_tops, df_bottoms, df_shoes ]);
 
     // parallel matchers for different body types
@@ -158,9 +199,9 @@ define_layers(
 
     ~ layer clothing_logic = $Init.decision_layer("outfit", () -> {
         ~ bool combined = clothing_type.get_choice() == COMBINED_OUTFIT;
-        ~ int choiceIndex = body_layer.get_choice_index();
+        ~ int choice_index = body_layer.get_choice_index();
 
-        when (choiceIndex) {
+        when (choice_index) {
             is 0 -> return combined ? dm_outfits : dm_articles;
             otherwise -> return combined ? df_outfits : df_articles;
         }
@@ -170,7 +211,7 @@ define_layers(
 
     ~ layer capsule_layer = build_acl("capsule", [ 5, 5 ], 
             l -> get_choices(l, s -> clothes_choice(s, capsule_cols)), 
-            $Init.no_choice_invalid(), sh -> compose_capsule(sh, dims), [ 0, 0 ]);
+            $Init.no_choice_invalid(), ::compose_capsule, [ 0, 0 ]);
 
     ~ layer combined_head_back = $Init.composed_layer(
         "combined-head-back", id -> {
@@ -232,14 +273,8 @@ build_dcl(
     );
 }
 
-build_article(
-    ~ string layer_id, ~ col_sel[] sels, ~ (sheet -> (string -> image)) composer -> 
-    layer
-) {
-    ~ int[] dims = [ 40, 40 ];
-    
-    return build_clothes(layer_id, dims, sels, 0.0, composer, [ dims[0], 0 ]);
-}
+build_article(~ string layer_id, ~ col_sel[] sels -> layer) -> 
+        build_clothes(layer_id, dims, sels, 0.0, def_composer, [ dims[0], 0 ])
 
 build_clothes(
     ~ string layer_id, ~ int[] dims, ~ col_sel[] sels, ~ float nc_prob, 
@@ -263,7 +298,7 @@ build_acl(
     );
 }
 
-get_clothes_sels(~ int n, ~ color[] clothes_swatches -> col_sel[]) {
+get_clothes_sels(~ int n -> col_sel[]) {
     ~ col_sel[] sels = new col_sel[n];
 
     for (int i = 0; i < n; i++) {
@@ -283,48 +318,31 @@ get_clothes_sels(~ int n, ~ color[] clothes_swatches -> col_sel[]) {
 }
 
 compose_head(~ sheet sh, ~ int[] dims, ~ string[] directions -> (string -> image)) {
-    ~ (string -> image) asset_fetcher = 
-            x_sheet(sh, id -> head_dir_x(id, directions));
+    ~ (string -> image) asset_fetcher = x_sheet(sh, ::head_dir_x);
 
-    return id -> {
+    return sprite_id -> {
         ~ image sprite = new_image_of(dims[0], dims[1]);
 
-        ~ string[] split = id.split("-");
-        ~ string dir = convert_dir(split[0]);
-        ~ string anim_id = split[1];
+        ~ string dir = $Util.extract_direction(sprite_id);
+        ~ string anim_id = $Util.extract_anim_id(sprite_id);
 
-        if (anim_id == "use_capsule" && dir != $TDSM.S)
+        if (anim_id == CAPSULE_ID && dir != $TDSM.S)
             return sprite;
         
-        ~ int[] offset = head_offset(id);
+        ~ int[] offset = head_offset(sprite_id);
         ~ int BASE_X = 10; ~ int BASE_Y = 10;
         ~ int x = BASE_X + offset[0];
         ~ int y = BASE_Y + offset[1];
 
-        sprite.draw(asset_fetcher.call(id), x, y);
+        sprite.draw(asset_fetcher.call(sprite_id), x, y);
         return sprite;
     };
 }
 
-convert_dir(~ string dir -> string) {
-    // TODO - API solution
-    when (dir) {
-        is $TDSM.S -> return "down";
-        is $TDSM.N -> return "up";
-        is $TDSM.W -> return "left";
-        is $TDSM.E -> return "right";
-        is "down" -> return $TDSM.S;
-        is "up" -> return $TDSM.N;
-        is "left" -> return $TDSM.W;
-        is "right" -> return $TDSM.E;
-    }
-}
-
 head_offset(~ string sprite_id -> int[]) {
-    ~ string[] split = sprite_id.split("-");
-    ~ string dir = convert_dir(split[0]);
-    ~ string anim_id = split[1];
-    ~ int frame = (int) split[2];
+    ~ string dir = $Util.extract_direction(sprite_id);
+    ~ string anim_id = $Util.extract_anim_id(sprite_id);
+    ~ int frame = $Util.extract_frame(sprite_id);
 
     int anim_comp; int frame_comp; int x;
 
@@ -340,8 +358,8 @@ head_offset(~ string sprite_id -> int[]) {
     // x
 
     when (anim_id) {
-        is "cycle" -> x = rock3.call(frame);
-        is "fish" -> {
+        is CYCLE_ID -> x = rock3.call(frame);
+        is FISH_ID -> {
             when (dir) {
                 is $TDSM.S -> x = frame == 3 ? 0 : 1;
                 is $TDSM.N -> x = frame > 1 ? 0 : -1;
@@ -349,8 +367,8 @@ head_offset(~ string sprite_id -> int[]) {
                 is $TDSM.W -> x = fish_side.call(frame);
             }
         }
-        is "use_capsule" -> x = frame == 1 || frame == 4 ? -1 : 0;
-        is "surf" -> {
+        is CAPSULE_ID -> x = frame == 1 || frame == 4 ? -1 : 0;
+        is SURF_ID -> {
             when (dir) {
                 is $TDSM.W -> x = 1;
                 is $TDSM.E -> x = -1;
@@ -363,52 +381,51 @@ head_offset(~ string sprite_id -> int[]) {
     // animation Y offset component
 
     when (anim_id) {
-        is "idle", "walk" -> {
+        is IDLE_ID, WALK_ID -> {
             when (dir) {
                 is $TDSM.S -> anim_comp = 2;
                 is $TDSM.N -> anim_comp = 4;
                 otherwise -> anim_comp = 3;
             }
         }
-        is "run" -> anim_comp = 2 + (dir == $TDSM.S ? 0 : 1);
-        is "cycle" -> anim_comp = 1 + (dir == $TDSM.N ? 1 : 0);
-        is "surf" -> {
+        is RUN_ID -> anim_comp = 2 + (dir == $TDSM.S ? 0 : 1);
+        is CYCLE_ID -> anim_comp = 1 + (dir == $TDSM.N ? 1 : 0);
+        is SURF_ID -> {
             when (dir) {
                 is $TDSM.S -> anim_comp = -6;
                 is $TDSM.N -> anim_comp = -4;
                 otherwise -> anim_comp = -5;
             }
         }
-        is "fish" -> anim_comp = dir == $TDSM.S ? -4 : 3;
-        is "use_capsule" -> anim_comp = 2;
+        is FISH_ID -> anim_comp = dir == $TDSM.S ? -4 : 3;
+        is CAPSULE_ID -> anim_comp = 2;
         otherwise -> anim_comp = 0;
     }
 
     // frame Y offset component
 
     when (anim_id) {
-        is "walk", "run" -> frame_comp = frame != 1 ? 1 : 0;
-        is "surf" -> frame_comp = frame;
-        is "fish" -> {
+        is WALK_ID, RUN_ID -> frame_comp = frame != 1 ? 1 : 0;
+        is SURF_ID -> frame_comp = frame;
+        is FISH_ID -> {
             when (dir) {
                 is $TDSM.N -> frame_comp = frame == 3 ? -1 : 0;
                 is $TDSM.S -> frame_comp = frame == 2 ? 1 : 0;
                 otherwise -> frame_comp = frame % 2 == 0 ? 1 : 0;
             }
         }
-        is "use_capsule" -> frame_comp = frame == 3 ? -1 : 0;
+        is CAPSULE_ID -> frame_comp = frame == 3 ? -1 : 0;
         otherwise -> frame_comp = 0;
     }
 
     return [ x, anim_comp + frame_comp ];
 }
 
-head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
-    ~ string[] split = sprite_id.split("-");
-    ~ string dir = convert_dir(split[0]);
-    ~ string anim_id = split[1];
+head_dir_x(~ string sprite_id -> int) {
+    ~ string dir = $Util.extract_direction(sprite_id);
+    ~ string anim_id = $Util.extract_anim_id(sprite_id);
 
-    if (dir == $TDSM.S && anim_id == "run")
+    if (dir == $TDSM.S && anim_id == RUN_ID)
         return 4;
     
     for (int i = 0; i < #| directions; i++)
@@ -421,7 +438,7 @@ head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
 x_sheet(~ sheet sh, ~ (string -> int) x_func -> (string -> image)) -> 
         id -> sh.sprite_at(x_func.call(id), 0)
 
-compose_eyes(~ sheet sh, ~ layer eye_height -> (string -> image)) -> 
+compose_eyes(~ sheet sh -> (string -> image)) -> 
         compose_on_head(sh, -eye_height.get_value(), true)
 
 simple_on_head(~ sheet sh -> (string -> image)) -> compose_on_head(sh, 0, false)
@@ -445,16 +462,15 @@ compose_on_head(~ sheet sh, ~ int aug_y, ~ bool copy_tilted_down -> (string -> i
     };
 }
 
-compose_capsule(~ sheet sh, ~ int[] dims -> (string -> image)) {
-    return id -> {
+compose_capsule(~ sheet sh -> (string -> image)) {
+    return sprite_id -> {
         ~ image sprite = new_image_of(dims[0], dims[1]);
 
-        ~ string[] split = id.split("-");
-        ~ string dir = convert_dir(split[0]);
-        ~ string anim_id = split[1];
-        ~ int frame = (int) split[2];
+        ~ string dir = $Util.extract_direction(sprite_id);
+        ~ string anim_id = $Util.extract_anim_id(sprite_id);
+        ~ int frame = $Util.extract_frame(sprite_id);
 
-        if (anim_id != "use_capsule" || dir != $TDSM.S || frame == 0)
+        if (anim_id != CAPSULE_ID || dir != $TDSM.S || frame == 0)
             return sprite;
         
         int x = 0; int y = 0;
@@ -542,10 +558,7 @@ shortener(~ int num_sels, ~ col_sel[] sels -> col_sel[]) {
 fetch_asset(~ string layer_id, ~ string id -> image) -> 
         read_image("./bases/" + layer_id + "/" + id + ".png")
 
-get_hair_selections(
-    ~ int num_sels, ~ col_sel[] hair_acc_cols, ~ col_sel hair_cols ->
-    col_sel[]
-) {
+get_hair_selections(~ int num_sels -> col_sel[]) {
     when (num_sels) {
         is 3 -> return [ hair_acc_cols[0], hair_acc_cols[1], hair_cols ];
         is 2 -> return [ hair_acc_cols[0], hair_cols ];
@@ -560,9 +573,9 @@ clothes_replace(~ color input -> replacement) {
     color b = #000000;
 
     for (int i = 0; i < 4; i++) {
-        if (CLOTH(i).has(rgb_input)) {
+        if (CLOTH[i].has(rgb_input)) {
             index = i;
-            b = BASE_CLOTH(i);
+            b = BASE_CLOTH[i];
         }
     }
 
@@ -586,43 +599,35 @@ replace_with_n_selections(~ color input, ~ int n -> replacement) {
     int index = -1;
     color b = #000000;
 
-    ~ color{}<> REPLS = <>;
-    ~ color[] BASES =  new color[4];
-
-    for (int i = 0; i < 4; i++) {
-        BASES[i] = BASE_CLOTH(i);
-        REPLS.add(CLOTH(i));
-    }
-
-    ~ bool is_skin = SKIN().has(rgb_input);
-    ~ bool is_outline = OUTLINE().has(rgb_input);
-    ~ bool is_hair = HAIR().has(rgb_input);
-    ~ bool is_iris = IRIS().has(rgb_input);
-    ~ bool is_ew = EYE_WHITE().has(rgb_input);
+    ~ bool is_skin = SKIN.has(rgb_input);
+    ~ bool is_outline = OUTLINE.has(rgb_input);
+    ~ bool is_hair = HAIR.has(rgb_input);
+    ~ bool is_iris = IRIS.has(rgb_input);
+    ~ bool is_ew = EYE_WHITE.has(rgb_input);
     
     bool found = false;
     for (int i = 0; i < n && !found; i++) {
-        ~ color{} REPL = REPLS<i>;
+        ~ color{} REPL = CLOTH[i];
 
         if (REPL.has(rgb_input)) {
             index = i;
-            b = BASES[i];
+            b = BASE_CLOTH[i];
             found = true;
         }
     }
 
     if (is_skin || is_outline) {
         index = n;
-        b = BASE_SKIN();
+        b = BASE_SKIN;
     } else if (is_hair) {
         index = n + 1;
-        b = BASE_HAIR();
+        b = BASE_HAIR;
     } else if (is_iris) {
         index = n + 2;
-        b = BASE_IRIS();
+        b = BASE_IRIS;
     } else if (is_ew) {
         index = n + 3;
-        b = BASE_EYE_WHITE();
+        b = BASE_EYE_WHITE;
     }
 
     ~ color base = b;
@@ -645,59 +650,3 @@ replace_with_n_selections(~ color input, ~ int n -> replacement) {
 }
 
 rgb_only(~ color c -> color) -> rgb(c.r, c.g, c.b)
-
-SKIN(-> color{}) -> { BASE_SKIN(), #98e898, #70d870 }
-
-OUTLINE(-> color{}) -> {  #557840, #364030 }
-
-HAIR(-> color{}) -> { BASE_HAIR(), #8080f0, #4848c8, #303070 }
-
-IRIS(-> color{}) -> { BASE_IRIS(), #884848 }
-
-EYE_WHITE(-> color{}) -> { BASE_EYE_WHITE(), #a8d8d8 }
-
-CLOTH(~ int index -> color{}) {
-    ~ color{} set = { BASE_CLOTH(index) };
-    
-    when (index) {
-        is 0 -> {
-            set.add(#f8b0b0);
-            set.add(#c84848);
-            set.add(#703030);
-        }
-        is 1 -> {
-            set.add(#f8d4b0);
-            set.add(#c88848);
-            set.add(#705030);
-        }
-        is 2 -> {
-            set.add(#f8f8b0);
-            set.add(#c8c848);
-            set.add(#707030);
-        }
-        is 3 -> {
-            set.add(#d4f8b0);
-            set.add(#88c848);
-            set.add(#507030);
-        }
-    }
-
-    return set;
-}
-
-BASE_SKIN(-> color) -> #b8f8b8
-
-BASE_HAIR(-> color) -> #b0b0f8
-
-BASE_IRIS(-> color) -> #ff0000
-
-BASE_EYE_WHITE(-> color) -> #00ffff
-
-BASE_CLOTH(~ int index -> color) {
-    when (index) {
-        is 0 -> return #f08080;
-        is 1 -> return #f0b880;
-        is 2 -> return #f0f080;
-        is 3 -> return #b8f080;
-    }
-}

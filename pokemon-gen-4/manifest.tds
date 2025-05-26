@@ -1,8 +1,8 @@
 (-> style) {
-    string id = "pokemon-gen-4";
-    int[] dims = [ 48, 48 ];
-    string[] directions = ["S", "W", "E", "N"];
-    bool orientation = $TDSM.HORZ;
+    ~ string id = "pokemon-gen-4";
+    ~ int[] dims = [ 48, 48 ];
+    ~ string[] directions = ["S", "W", "E", "N"];
+    ~ bool orientation = $TDSM.HORZ;
 
     ~ string WALK_ID = "walk"; ~ string IDLE_ID = "idle";
     ~ string RUN_ID = "run"; ~ string FISH_ID = "fish";
@@ -10,10 +10,10 @@
     ~ string SURF_ID = "surf"; ~ string SWIM_ID = "swim";
     ~ string CAPSULE_ID = "use_pokeball";
     anim[] anims = define_anims();
-    {string : anim} anim_map = new {string : anim};
+    // {string : anim} anim_map = new {string : anim};
 
-    for (a in anims)
-        anim_map.define(a.id, a);
+    // for (a in anims)
+    //     anim_map.define(a.id, a);
 
     // LAYER PREP
 
@@ -355,8 +355,7 @@ get_clothes_sels(~ int n -> col_sel[]) {
 }
 
 compose_head(~ sheet sh -> (string -> image)) {
-    ~ (string -> image) asset_fetcher = 
-            x_sheet(sh, id -> head_dir_x(id, directions));
+    ~ (string -> image) asset_fetcher = x_sheet(sh, ::head_dir_x);
 
     return id -> {
         ~ image sprite = new_image_of(dims[0], dims[1]);
@@ -497,7 +496,7 @@ head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
     return [ x, body_comp + anim_comp + frame_comp ];
 }
 
-head_dir_x(~ string sprite_id, ~ string[] directions -> int) {
+head_dir_x(~ string sprite_id -> int) {
     ~ string dir = $Util.extract_direction(sprite_id);
     ~ string anim_id = $Util.extract_anim_id(sprite_id);
     ~ int frame = $Util.extract_frame(sprite_id);
