@@ -1,0 +1,462 @@
+(-> style) {
+    ~ int X = 0; ~ int Y = 1;
+
+    ~ string id = "default";
+    ~ int[] dims = [ 48, 48 ];
+    ~ string[] directions = [ "S", "SE", "E", "NE", "N", "NW", "W", "SW" ];
+    ~ bool orientation = $TDSM.HORZ;
+
+    ~ string T_POSE_ID = "t_pose"; ~ string IDLE_ID = "idle"; 
+    // TODO - remaining animation IDs
+    ~ anim[] anims = define_anims();
+
+    // LAYER PREP
+
+    // Colors
+
+    ~ color BASE_SKIN = #b8f8b8;
+    ~ color BASE_HAIR = #b0b0f8;
+    ~ color BASE_IRIS = #ff0000;
+    ~ color BASE_EYE_WHITE = #00ffff;
+
+    ~ color[] BASE_CLOTH = [
+        #f08080, #f0b880, #f0f080, #b8f080
+    ];
+
+    ~ color{} SKIN = { BASE_SKIN, #98e898, #70d870 };
+    ~ color{} OUTLINE = {  #557840, #364030 };
+    ~ color{} HAIR = { BASE_HAIR, #8080f0, #4848c8, #303070 };
+    ~ color{} IRIS = { BASE_IRIS, #884848 };
+    ~ color{} EYE_WHITE = { BASE_EYE_WHITE, #a8d8d8 };
+
+    ~ color{}[] CLOTH = [
+        { BASE_CLOTH[0], #f8b0b0, #c84848, #703030 }, 
+        { BASE_CLOTH[1], #f8d4b0, #c88848, #705030 }, 
+        { BASE_CLOTH[2], #f8f8b0, #c8c848, #707030 }, 
+        { BASE_CLOTH[3], #d4f8b0, #88c848, #507030 }
+    ];
+
+    // Swatches
+
+    ~ color[] skin_swatches = [
+         #f8d0b8, #a88050, #c89060, #f8e0b8, 
+         #986860, #986840, #58402e 
+    ];
+    ~ color[] hair_swatches = [
+        #404040, #342820, #4b382c, #684828, 
+        #82662d, #b2864b, #c4b880, #dedbb8, 
+        #888480, #c4beb8
+    ];
+    ~ color[] iris_swatches = [
+        #000000, #402016, #7c6424, #506c32, 
+        #70207c, #70a0c0
+    ];
+    ~ color[] clothes_swatches = [
+        #cbcbce, #383838, #e06040, #4060e0,
+        #a040e0, #309ea4, #c0709c, #70c070,
+        #f8b020, #784040, #609038, #989090
+    ];
+
+    // Color selections
+
+    ~ col_sel skin_tones = $Init.col_sel("Skin", true, skin_swatches);
+    ~ col_sel hair_cols = $Init.col_sel("Hair", true, hair_swatches);
+    ~ col_sel eyebrow_cols = $Init.col_sel("Brows", true, hair_swatches);
+    ~ col_sel iris_cols = $Init.col_sel("Iris", true, iris_swatches);
+    ~ col_sel ew_cols = $Init.col_sel("Outer", true, [ #e8e8f8 ]);
+
+    ~ col_sel[] hair_acc_cols = [
+        $Init.col_sel("Accessory", true, clothes_swatches), 
+        $Init.col_sel("Acc. 2", true, clothes_swatches)
+    ];
+
+    ~ col_sel[] hat_cols = get_clothes_sels(4);
+    ~ col_sel[] top_cols = get_clothes_sels(4);
+    ~ col_sel[] bottom_cols = get_clothes_sels(4);
+    ~ col_sel[] shoes_cols = get_clothes_sels(2);
+
+    // Aux
+
+    ~ int[] HEAD_DIMS = [ 32, 32 ];
+    ~ int[] HEAD_SHEET_DIMS = [ HEAD_DIMS[X] * #| directions, HEAD_DIMS[Y] ];
+    ~ (sheet -> (string -> image)) def_composer = 
+            $Init.default_composer(directions, orientation, anims);
+    
+    // Globally referenced layers
+
+    ~ layer body_layer = build_acl("body", dims, l -> get_choices(l, ::simple_choice), 
+            $Init.no_choice_invalid(), def_composer, [ dims[X], 0 ]);
+    body_layer.add_influences([ skin_tones ]);
+
+    ~ layer eye_height = $Init.math_layer("eye-height", 0, 1, 0, 
+            i -> i == 0 ? "Low" : "High");
+
+    // TODO
+
+    ~ {bool:layer<>} layers = define_layers();
+
+    return $Init.style(id, dims, directions, orientation, anims, layers)
+}
+
+// SPECIFIED METADATA FUNCTIONS
+
+name(-> string) -> "Default"
+
+info(-> string) -> "Basic 8-directional 16-bit sprite"
+
+settings(-> string[]) -> [ "quantize_gba", "warn_rom_15_cols" ]
+
+preview_scale(-> int) -> 2
+
+// END OF METADATA
+
+define_anims(-> anim[]) -> [
+    $Init.anim(T_POSE_ID, fill_arr(12, 1), f -> [ 0, 0 ], false), 
+    $Init.anim(IDLE_ID, fill_arr(30, 2), 
+            $Init.simple_frame_coord_func(1, 0, orientation), false)
+]
+
+define_layers(-> {bool:layer<>}) {
+    ~ layer skin_layer = $Init.col_sel_layer("skin-color", [ skin_tones ]);
+
+    ~ layer head_layer = build_acl("head", HEAD_DIMS, 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
+            ::trivial_composer, [ 0, 0 ]);
+    head_layer.add_influences([ skin_tones ]);
+
+    ~ layer eye_layer = build_acl("eyes", HEAD_DIMS, 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
+            ::compose_eyes, [ 0, 0 ]);
+    eye_layer.add_influences([ skin_tones, eyebrow_cols, iris_cols, ew_cols ]);
+
+    ~ layer eye_color_layer = $Init.col_sel_layer("eye-color", [ iris_cols, ew_cols ]);
+
+    ~ layer hair_layer = build_acl("hair", HEAD_DIMS, 
+            l -> get_choices(l, ::hair_choice), 
+            $Init.no_choice_equal(), ::simple_on_head, [ 0, 0 ]);
+    hair_layer.add_influences([ skin_tones, hair_cols ]);
+
+    ~ layer hair_color_layer = $Init.col_sel_layer("hair-color", 
+            [ hair_cols, eyebrow_cols ]);
+
+    ~ layer hair_back = build_dcl("hair-back", hair_layer, -1);
+    ~ layer hair_front = build_dcl("hair-front", hair_layer, 1);
+
+    // TODO
+
+    ~ layer combined_head_back = $Init.composed_layer(
+        "combined-head-back", id -> {
+            ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[X], HEAD_SHEET_DIMS[Y]);
+
+            // preassembled.draw(hat_back.compose().call(id), 0, 0);
+
+            image hair_b = hair_back.compose().call(id);
+            // ~ image hat_b_mask = hat_back_mask.compose().call(id);
+            // hair_b = $ColorProc.alpha_mask(hair_b, hat_b_mask);
+            preassembled.draw(hair_b, 0, 0);
+
+            ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[X], HEAD_DIMS[Y]);
+            return compose_head(combined).call(id);
+        }
+    );
+
+    ~ layer combined_head = $Init.composed_layer(
+        "combined-head", id -> {
+            ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[X], HEAD_SHEET_DIMS[Y]);
+
+            preassembled.draw(head_layer.compose().call(id), 0, 0);
+            preassembled.draw(eye_layer.compose().call(id), 0, 0);
+
+            image hair = hair_layer.compose().call(id);
+            // ~ image hat_m = hat_mask.compose().call(id);
+            // hair = $ColorProc.alpha_mask(hair, hat_m);
+            preassembled.draw(hair, 0, 0);
+
+            // preassembled.draw(hat_layer.compose().call(id), 0, 0);
+            preassembled.draw(hair_front.compose().call(id), 0, 0);
+
+            ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[X], HEAD_DIMS[Y]);
+            return compose_head(combined).call(id);
+        }
+    );
+
+    // TODO - head mask if necessary
+
+    ~ layer<> custom = <
+        skin_layer, body_layer, head_layer, 
+        eye_layer, eye_color_layer, eye_height, 
+        hair_layer, hair_color_layer
+    >;
+    ~ layer<> assembly = <
+        combined_head_back, body_layer, /*clothing_logic, */
+        combined_head/*, head_mask*/
+    >;
+
+    return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
+}
+
+// HELPERS
+
+// Builders
+
+build_acl(
+    ~ string layer_id, ~ int[] dims, ~ (string -> asset_choice[]) choice_generator, 
+    ~ no_choice nc, ~ (sheet -> (string -> image)) composer, ~ int[] preview_coord ->
+    layer
+) {
+    return $Init.asset_choice_layer(
+        layer_id, dims, s -> fetch_asset(layer_id, s), 
+        choice_generator.call(layer_id), nc, composer, preview_coord
+    );
+}
+
+build_dcl(~ string layer_id, ~ layer ref, ~ int rel_index -> layer) -> 
+        $Init.dependent_layer(layer_id, s -> fetch_asset(layer_id, s), ref, rel_index)
+
+get_clothes_sels(~ int n -> col_sel[]) {
+    ~ col_sel[] sels = new col_sel[n];
+
+    for (int i = 0; i < n; i++) {
+        string name;
+
+        when (i) {
+            is 0 -> name = "Main";
+            is 1 -> name = "Accent";
+            is 2 -> name = "3rd";
+            otherwise -> name = (i + 1) + "th";
+        }
+
+        sels[i] = $Init.col_sel(name, true, clothes_swatches);
+    }
+
+    return sels;
+}
+
+// Trivial composer
+
+trivial_composer(~ sheet sh -> (string -> image)) -> s -> sh.source
+
+// Head composer
+
+compose_head(~ sheet sh -> (string -> image)) {
+    ~ (string -> image) asset_fetcher = x_sheet(sh, ::head_dir_x);
+
+    return sprite_id -> {
+        ~ image sprite = new_image_of(dims[X], dims[Y]);
+
+        ~ int[] offset = head_offset(sprite_id, body_layer);
+        ~ int BASE_X = 8; ~ int BASE_Y = 6;
+        ~ int x = BASE_X + offset[X];
+        ~ int y = BASE_Y + offset[Y];
+
+        sprite.draw(asset_fetcher.call(sprite_id), x, y);
+        return sprite;
+    };
+}
+
+head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
+    ~ string dir = $Util.extract_direction(sprite_id);
+    ~ string anim_id = $Util.extract_anim_id(sprite_id);
+    ~ int frame = $Util.extract_frame(sprite_id);
+
+    int body_comp = 0; int anim_comp = 0; int frame_comp = 0; int x = 0;
+
+    // frame component of Y offset
+
+    when (anim_id) {
+        is IDLE_ID -> frame_comp = frame;
+    }
+
+    return [ x, body_comp + anim_comp + frame_comp ];
+}
+
+x_sheet(~ sheet sh, ~ (string -> int) x_func -> (string -> image)) -> 
+        id -> sh.sprite_at(x_func.call(id), 0)
+
+head_dir_x(~ string sprite_id -> int) {
+    ~ string dir = $Util.extract_direction(sprite_id);
+    
+    for (int i = 0; i < #| directions; i++)
+        if (dir == directions[i])
+            return i;
+    
+    return -1;
+}
+
+// On head composers
+
+compose_eyes(~ sheet sh -> (string -> image)) -> 
+        compose_on_head(sh, -eye_height.get_value())
+
+simple_on_head(~ sheet sh -> (string -> image)) -> compose_on_head(sh, 0)
+
+compose_on_head(~ sheet sh, ~ int aug_y -> (string -> image)) {
+    ~ int max = #| directions;
+
+    return id -> {
+        ~ image dest = new_image_of(HEAD_SHEET_DIMS[X], HEAD_SHEET_DIMS[Y]);
+
+        for (int x = 0; x < max; x++) {
+            ~ image source = sh.sprite_at(x, 0);
+
+            dest.draw(source, x * 32, aug_y);
+        }
+
+        return dest;
+    };
+}
+
+// Choice generator
+
+get_choices(
+    ~ string layer_id, ~ (string -> asset_choice) post_split_func -> 
+    asset_choice[]
+) {
+    ~ string csv = read_file("./bases/" + layer_id + "/" + layer_id + ".csv");
+    ~ string[] split = csv.split(",");
+    ~ int n = #| split;
+
+    ~ asset_choice[] choices = new asset_choice[n];
+
+    for (int i = 0; i < n; i++)
+        choices[i] = post_split_func.call(split[i]);
+    
+    return choices;
+}
+
+// Post-CSV split functions
+
+simple_choice(~ string id -> asset_choice) -> 
+        $Init.asset_choice(id, ::replace, new col_sel[0])
+
+hair_choice(~ string csv_entry -> asset_choice) {
+    ~ string[] split = csv_entry.split(":");
+
+    if (#| split == 2) {
+        ~ string id = split[0];
+        ~ int num_sels = (int) split[1];
+        ~ col_sel[] sels = shortener(num_sels, hair_acc_cols);
+
+        return $Init.asset_choice(id, custom_replace(num_sels), sels);
+    } else
+        return $Init.asset_choice(csv_entry, ::replace, new col_sel[0]);
+}
+
+custom_replace(int n -> (color -> replacement)) {
+    // TODO - fix when you correct lambda behaviour in DeltaScript
+    when (n) {
+        is 4 -> return c -> replace_with_n_selections(c, 4);
+        is 3 -> return c -> replace_with_n_selections(c, 3);
+        is 2 -> return c -> replace_with_n_selections(c, 2);
+        is 1 -> return c -> replace_with_n_selections(c, 1);
+        otherwise -> return c -> replace_with_n_selections(c, 0);
+    }
+}
+
+// Misc.
+
+fill_arr(~ int value, ~ int reps -> int[]) {
+    ~ int[] array = new int[reps];
+
+    for (int i = 0; i < reps; i++)
+        array[i] = value;
+    
+    return array;
+}
+
+shortener(~ int num_sels, ~ col_sel[] sels -> col_sel[]) {
+    ~ col_sel[] result = new col_sel[num_sels];
+
+    for (int i = 0; i < num_sels && i < #| sels; i++)
+        result[i] = sels[i];
+    
+    return result;
+}
+
+fetch_asset(~ string layer_id, ~ string id -> image) -> 
+        read_image("./bases/" + layer_id + "/" + id + ".png")
+
+clothes_replace(~ color input -> replacement) {
+    ~ color rgb_input = rgb_only(input);
+
+    int index = -1;
+    color b = #000000;
+
+    for (int i = 0; i < 4; i++) {
+        if (CLOTH[i].has(rgb_input)) {
+            index = i;
+            b = BASE_CLOTH[i];
+        }
+    }
+
+    ~ color base = b;
+
+    return $Init.replacement(index, c -> {
+        ~ float s_ratio = (c.sat * input.sat) / base.sat;
+        ~ float v_ratio = (c.val * input.val) / base.val;
+        ~ float s = clamp(0.0, s_ratio, 1.0);
+        ~ float v = clamp(0.0, v_ratio, 1.0);
+
+        return $ColorProc.hsv(c.hue, s, v, input.a);
+    });
+}
+
+replace(~ color c -> replacement) -> replace_with_n_selections(c, 0)
+
+replace_with_n_selections(~ color input, ~ int n -> replacement) {
+    ~ color rgb_input = rgb_only(input);
+
+    int index = -1;
+    color b = #000000;
+
+    ~ bool is_skin = SKIN.has(rgb_input);
+    ~ bool is_outline = OUTLINE.has(rgb_input);
+    ~ bool is_hair = HAIR.has(rgb_input);
+    ~ bool is_iris = IRIS.has(rgb_input);
+    ~ bool is_ew = EYE_WHITE.has(rgb_input);
+    
+    bool found = false;
+    for (int i = 0; i < n && !found; i++) {
+        ~ color{} REPL = CLOTH[i];
+
+        if (REPL.has(rgb_input)) {
+            index = i;
+            b = BASE_CLOTH[i];
+            found = true;
+        }
+    }
+
+    if (is_skin || is_outline) {
+        index = n;
+        b = BASE_SKIN;
+    } else if (is_hair) {
+        index = n + 1;
+        b = BASE_HAIR;
+    } else if (is_iris) {
+        index = n + 2;
+        b = BASE_IRIS;
+    } else if (is_ew) {
+        index = n + 3;
+        b = BASE_EYE_WHITE;
+    }
+
+    ~ color base = b;
+
+    return $Init.replacement(index, c -> {
+        ~ float s_ratio = (c.sat * input.sat) / base.sat;
+        ~ float v_ratio = (c.val * input.val) / base.val;
+        ~ float s = clamp(0.0, s_ratio, 1.0);
+        ~ float v = clamp(0.0, v_ratio, 1.0);
+
+        if (is_outline) {
+            ~ float hue_diff = base.hue - input.hue;
+            ~ float hue = $ColorProc.normalize_hue(c.hue - hue_diff);
+
+            return $ColorProc.hsv(hue, s, v);
+        }
+
+        return $ColorProc.hsv(c.hue, s, v, input.a);
+    });
+}
+
+rgb_only(~ color c -> color) -> rgb(c.r, c.g, c.b)
