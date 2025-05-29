@@ -3,7 +3,7 @@
     ~ string GENERIC_FP = "./generic-with-csv.ses";
 
     ~ string[] IDs = [
-        "man"//, "woman", "child"
+        "man", "woman"//, "child"
     ];
 
     ~ script generic = $SE.read_script(GENERIC_FP);

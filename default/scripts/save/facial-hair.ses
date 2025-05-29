@@ -1,10 +1,11 @@
-// To be run when the hair workspace is the active project
+// To be run when the facial-hair workspace is the active project
 () {
     ~ string GENERIC_FP = "./generic.ses";
     ~ string GEN_W_CSV_FP = "./generic-with-csv.ses";
     
     ~ string[] IDs = [
-        "waves"
+        "thick-mustache", "groomed-beard", "stubble", 
+        "mustache-with-soul-patch", "rnb-heartthrob"
     ];
 
     ~ {string:int} incidence = new {string:int};
@@ -13,7 +14,6 @@
     ~ script gwcsv = $SE.read_script(GEN_W_CSV_FP);
     ~ project p = $SE.get_project();
 
-    gwcsv.run(IDs, incidence, "hair", p.get_layer("hair"));
-    generic.run(IDs, "hair-back", p.get_layer("hair-back"));
-    generic.run(IDs, "hair-front", p.get_layer("hair-front"));
+    gwcsv.run(IDs, incidence, "facial-hair", p.get_layer("facial-hair"));
+    generic.run(IDs, "facial-hair-back", p.get_layer("facial-hair-back"));
 }

@@ -6,7 +6,8 @@
     ~ string[] directions = [ "S", "SE", "E", "NE", "N", "NW", "W", "SW" ];
     ~ bool orientation = $TDSM.HORZ;
 
-    ~ string T_POSE_ID = "t_pose"; ~ string IDLE_ID = "idle"; 
+    ~ string T_POSE_ID = "t_pose"; ~ string IDLE_ID = "idle";
+    ~ string WALK_ID = "walk";
     // TODO - remaining animation IDs
     ~ anim[] anims = define_anims();
 
@@ -60,7 +61,8 @@
     // Color selections
 
     ~ col_sel skin_tones = $Init.col_sel("Skin", true, skin_swatches);
-    ~ col_sel hair_cols = $Init.col_sel("Hair", true, hair_swatches);
+    ~ col_sel hair_cols = $Init.col_sel("Scalp", true, hair_swatches);
+    ~ col_sel beard_cols = $Init.col_sel("Beard", true, hair_swatches);
     ~ col_sel eyebrow_cols = $Init.col_sel("Brows", true, hair_swatches);
     ~ col_sel iris_cols = $Init.col_sel("Iris", true, iris_swatches);
     ~ col_sel ew_cols = $Init.col_sel("Outer", true, [ #e8e8f8 ]);
@@ -113,7 +115,16 @@ preview_scale(-> int) -> 2
 define_anims(-> anim[]) -> [
     $Init.anim(T_POSE_ID, fill_arr(12, 1), f -> [ 0, 0 ], false), 
     $Init.anim(IDLE_ID, fill_arr(30, 2), 
-            $Init.simple_frame_coord_func(1, 0, orientation), false)
+            $Init.simple_frame_coord_func(1, 0, orientation), false), 
+    $Init.anim(WALK_ID, fill_arr(10, 3), f -> {
+        int x;
+        when (f) {
+            is 0 -> x = 3;
+            is 1 -> x = 1;
+            is 2 -> x = 4;
+        }
+        return [ x, 0 ];
+    }, true)
 ]
 
 define_layers(-> {bool:layer<>}) {
@@ -136,11 +147,19 @@ define_layers(-> {bool:layer<>}) {
             $Init.no_choice_equal(), ::simple_on_head, [ 0, 0 ]);
     hair_layer.add_influences([ skin_tones, hair_cols ]);
 
+    ~ layer facial_hair_layer = build_acl("facial-hair", HEAD_DIMS, 
+            l -> get_choices(l, ::hair_choice), 
+            $Init.no_choice_prob(0.0), ::simple_on_head, [ 0, 0 ]);
+    facial_hair_layer.add_influences([ skin_tones, beard_cols ]);
+
     ~ layer hair_color_layer = $Init.col_sel_layer("hair-color", 
-            [ hair_cols, eyebrow_cols ]);
+            [ hair_cols, beard_cols, eyebrow_cols ]);
 
     ~ layer hair_back = build_dcl("hair-back", hair_layer, -1);
     ~ layer hair_front = build_dcl("hair-front", hair_layer, 1);
+
+    ~ layer facial_hair_back = build_dcl("facial-hair-back", 
+            facial_hair_layer, -1);
 
     // TODO
 
@@ -149,11 +168,16 @@ define_layers(-> {bool:layer<>}) {
             ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[X], HEAD_SHEET_DIMS[Y]);
 
             // preassembled.draw(hat_back.compose().call(id), 0, 0);
+            
+            // ~ image hat_b_mask = hat_back_mask.compose().call(id);
 
             image hair_b = hair_back.compose().call(id);
-            // ~ image hat_b_mask = hat_back_mask.compose().call(id);
             // hair_b = $ColorProc.alpha_mask(hair_b, hat_b_mask);
             preassembled.draw(hair_b, 0, 0);
+
+            image facial_hair_b = facial_hair_back.compose().call(id);
+            // facial_hair_b = $ColorProc.alpha_mask(facial_hair_b, hat_b_mask);
+            preassembled.draw(facial_hair_b, 0, 0);
 
             ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[X], HEAD_DIMS[Y]);
             return compose_head(combined).call(id);
@@ -167,8 +191,13 @@ define_layers(-> {bool:layer<>}) {
             preassembled.draw(head_layer.compose().call(id), 0, 0);
             preassembled.draw(eye_layer.compose().call(id), 0, 0);
 
-            image hair = hair_layer.compose().call(id);
             // ~ image hat_m = hat_mask.compose().call(id);
+
+            image facial_hair = facial_hair_layer.compose().call(id);
+            // facial_hair = $ColorProc.alpha_mask(facial_hair, hat_m);
+            preassembled.draw(facial_hair, 0, 0);
+
+            image hair = hair_layer.compose().call(id);
             // hair = $ColorProc.alpha_mask(hair, hat_m);
             preassembled.draw(hair, 0, 0);
 
@@ -185,7 +214,7 @@ define_layers(-> {bool:layer<>}) {
     ~ layer<> custom = <
         skin_layer, body_layer, head_layer, 
         eye_layer, eye_color_layer, eye_height, 
-        hair_layer, hair_color_layer
+        hair_layer, facial_hair_layer, hair_color_layer
     >;
     ~ layer<> assembly = <
         combined_head_back, body_layer, /*clothing_logic, */
@@ -259,12 +288,15 @@ head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
     ~ string anim_id = $Util.extract_anim_id(sprite_id);
     ~ int frame = $Util.extract_frame(sprite_id);
 
-    int body_comp = 0; int anim_comp = 0; int frame_comp = 0; int x = 0;
+    int anim_comp = 0; int frame_comp = 0; int x = 0;
+
+    int body_comp = body_layer.get_choice_index();
 
     // frame component of Y offset
 
     when (anim_id) {
         is IDLE_ID -> frame_comp = frame;
+        is WALK_ID -> frame_comp = frame == 1 ? 0 : -1;
     }
 
     return [ x, body_comp + anim_comp + frame_comp ];
