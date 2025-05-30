@@ -4,7 +4,7 @@
     ~ string GEN_W_CSV_FP = "./generic-with-csv.ses";
     
     ~ string[] IDs = [
-        "waves"
+        "waves", "cornrows"
     ];
 
     ~ {string:int} incidence = new {string:int};
