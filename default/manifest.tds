@@ -104,7 +104,8 @@
 
 name(-> string) -> "Default"
 
-info(-> string) -> "Basic 8-directional 16-bit sprite"
+info(-> string) -> "Basic 8-directional 16-bit sprite\n" + 
+        "See the \"About\" -> \"Help\" menu to learn how to get more styles"
 
 settings(-> string[]) -> [ "quantize_gba", "warn_rom_15_cols" ]
 
@@ -149,7 +150,7 @@ define_layers(-> {bool:layer<>}) {
 
     ~ layer facial_hair_layer = build_acl("facial-hair", HEAD_DIMS, 
             l -> get_choices(l, ::hair_choice), 
-            $Init.no_choice_prob(0.0), ::simple_on_head, [ 0, 0 ]);
+            $Init.no_choice_prob(1.0), ::simple_on_head, [ 0, 0 ]);
     facial_hair_layer.add_influences([ skin_tones, beard_cols ]);
 
     ~ layer hair_color_layer = $Init.col_sel_layer("hair-color", 

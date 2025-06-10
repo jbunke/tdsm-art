@@ -190,12 +190,12 @@ define_layers(-> {bool : layer<>}) {
     ~ layer df_shoes = build_article("df-shoes", shoes_cols);
     ~ layer df_articles = $Init.group_layer("outfit", [ df_tops, df_bottoms, df_shoes ]);
 
-    // parallel matchers for different body types
+    // sync choices for different body types
 
-    $Util.parallel_matchers(dm_outfits, df_outfits);
-    $Util.parallel_matchers(dm_tops, df_tops);
-    $Util.parallel_matchers(dm_bottoms, df_bottoms);
-    $Util.parallel_matchers(dm_shoes, df_shoes);
+    $Util.sync_choices(dm_outfits, df_outfits);
+    $Util.sync_choices(dm_tops, df_tops);
+    $Util.sync_choices(dm_bottoms, df_bottoms);
+    $Util.sync_choices(dm_shoes, df_shoes);
 
     ~ layer clothing_logic = $Init.decision_layer("outfit", () -> {
         ~ bool combined = clothing_type.get_choice() == COMBINED_OUTFIT;

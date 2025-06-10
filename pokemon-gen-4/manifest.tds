@@ -222,12 +222,12 @@ define_layers(-> {bool : layer<>}) {
     ~ layer av_shoes = build_article("av-shoes", shoes_cols);
     ~ layer av_articles = $Init.group_layer("outfit", [ av_tops, av_bottoms, av_shoes ]);
 
-    // parallel matchers for different body types
+    // sync choices for different body types
 
-    $Util.parallel_matchers(sm_outfits, av_outfits);
-    $Util.parallel_matchers(sm_tops, av_tops);
-    $Util.parallel_matchers(sm_bottoms, av_bottoms);
-    $Util.parallel_matchers(sm_shoes, av_shoes);
+    $Util.sync_choices(sm_outfits, av_outfits);
+    $Util.sync_choices(sm_tops, av_tops);
+    $Util.sync_choices(sm_bottoms, av_bottoms);
+    $Util.sync_choices(sm_shoes, av_shoes);
 
     ~ layer clothing_logic = $Init.decision_layer("outfit", () -> {
         ~ bool combined = clothing_type.get_choice() == COMBINED_OUTFIT;
