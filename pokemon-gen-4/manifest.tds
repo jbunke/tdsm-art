@@ -146,11 +146,11 @@ define_anims(-> anim[]) {
         $Init.anim(IDLE_ID, [12], f -> [0, 0], false), 
         $Init.anim(RUN_ID, [ 6, 6, 6 ], 
                 $Init.simple_frame_coord_func(3, 0, orientation), true), 
-        $Init.anim(FISH_ID, [ 12, 12, 12, 12 ], 
-                $Init.simple_frame_coord_func(6, 0, orientation), false), 
-        $Init.anim(BIKE_IDLE_ID, [ 12 ], f -> [10, 0], true), 
-        $Init.anim(CYCLE_ID, [ 8, 8, 8, 8 ], 
-                $Init.simple_frame_coord_func(11, 0, orientation), true), 
+//        $Init.anim(FISH_ID, [ 12, 12, 12, 12 ], 
+//                $Init.simple_frame_coord_func(6, 0, orientation), false), 
+//        $Init.anim(BIKE_IDLE_ID, [ 12 ], f -> [10, 0], true), 
+//        $Init.anim(CYCLE_ID, [ 8, 8, 8, 8 ], 
+//                $Init.simple_frame_coord_func(11, 0, orientation), true), 
         $Init.anim(SURF_ID, [12], f -> [15, 0], false), 
         $Init.anim(SWIM_ID, [12, 12, 12], f -> {
             int x;
@@ -160,9 +160,9 @@ define_anims(-> anim[]) {
                 otherwise -> x = 2;
             }
             return [ 16 + x, 0 ];
-        }, true), 
-        $Init.anim(CAPSULE_ID, [ 12, 12, 12, 12 ], 
-                $Init.simple_frame_coord_func(19, 0, orientation), false)
+        }, true) 
+//        $Init.anim(CAPSULE_ID, [ 12, 12, 12, 12 ], 
+//                $Init.simple_frame_coord_func(19, 0, orientation), false)
     ];
 }
 
