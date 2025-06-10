@@ -209,7 +209,7 @@ define_layers(-> {bool : layer<>}) {
     clothing_type.add_dependent(clothing_logic);
     body_layer.add_dependent(clothing_logic);
 
-    ~ layer capsule_layer = build_acl("capsule", [ 5, 5 ], 
+    ~ layer capsule_layer = build_acl("pokeball", [ 5, 5 ], 
             l -> get_choices(l, s -> clothes_choice(s, capsule_cols)), 
             $Init.no_choice_invalid(), ::compose_capsule, [ 0, 0 ]);
 

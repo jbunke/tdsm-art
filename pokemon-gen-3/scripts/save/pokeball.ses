@@ -1,6 +1,6 @@
 // To be run when the capsule workspace is the active project
 () {
-    ~ string LAYER_ID = "capsule";
+    ~ string LAYER_ID = "pokeball";
     
     ~ string GENERIC_FP = "./generic.ses";
     ~ string GEN_W_CSV_FP = "./generic-with-csv.ses";
