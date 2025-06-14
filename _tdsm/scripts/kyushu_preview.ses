@@ -3,9 +3,12 @@
     ~ string script_path = "./anim-preview.ses";
     ~ image source = $SE.get_project().get_layer().get_cel(0);
 
-    string[] anims = [ "walk", "idle", "run", "cycle", "surf" ];
+    string[] anims = [
+        "walk", "idle", "run", "cycle", "fish", "surf", "pokeball"
+    ];
     {string:int} anim_map = {
-        "walk" : 3, "idle" : 1, "run" : 3, "cycle" : 3, "surf" : 2
+        "walk" : 3, "idle" : 1, "run" : 3, "cycle" : 3, 
+        "fish" : 4, "surf" : 2, "pokeball" : 4
     };
 
     ~ script s = $SE.read_script(script_path);
