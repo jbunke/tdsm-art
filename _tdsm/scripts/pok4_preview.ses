@@ -9,5 +9,5 @@
     };
 
     ~ script s = $SE.read_script(script_path);
-    s.run(source, anims, anim_map, 48, 48);
+    s.run(source, anims, anim_map, 48, 48, #e7d8c0);
 }

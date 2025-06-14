@@ -1,4 +1,4 @@
-// Run while Kyushu example is the active project
+// Run while Gen 3 example is the active project
 () {
     ~ string script_path = "./anim-preview.ses";
     ~ image source = $SE.get_project().get_layer().get_cel(0);
@@ -12,5 +12,5 @@
     };
 
     ~ script s = $SE.read_script(script_path);
-    s.run(source, anims, anim_map, 40, 40);
+    s.run(source, anims, anim_map, 40, 40, #e7d8c0);
 }

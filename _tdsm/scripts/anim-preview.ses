@@ -1,4 +1,7 @@
-(~ image source, ~ string[] anims, ~ {string:int} anim_map, ~ int sprite_w, ~ int sprite_h) {
+(
+    ~ image source, ~ string[] anims, ~ {string:int} anim_map, 
+    ~ int sprite_w, ~ int sprite_h, ~ color col_bg
+) {
     ~ int n_anims = #| anims;
     ~ int CELS = 32;
 
@@ -7,10 +10,8 @@
 
     ~ project p = $SE.new_project(w, sprite_h);
 
-    ~ color COL_BG = #b7cbe6;
-
     ~ image bg_img = new_image_of(w, sprite_h);
-    bg_img.fill(COL_BG, 0, 0, w, sprite_h);
+    bg_img.fill(col_bg, 0, 0, w, sprite_h);
 
     ~ layer bg = p.get_layer();
     bg.link_cels();
