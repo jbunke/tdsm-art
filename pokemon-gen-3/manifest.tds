@@ -146,9 +146,10 @@ define_layers(-> {bool : layer<>}) {
     head_layer.add_influences([ skin_tones ]);
 
     ~ layer eye_layer = build_acl("eyes", HEAD_DIMS, 
-            l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_prob(0.0), 
             ::compose_eyes, [ 0, 0 ]);
     eye_layer.add_influences([ skin_tones, eyebrow_cols, eye_cols ]);
+    eye_layer.choose(0);
 
     ~ layer eye_color_layer = $Init.col_sel_layer("eye-color", [ eyebrow_cols, eye_cols ]);
 
