@@ -1,0 +1,9 @@
+// to be run with the blueprint palette as active palette
+(~ color c -> color) {
+    if (!$SE.has_pal())
+        return c;
+
+    ~ color{} contents = $SE.get_pal().colors();
+
+    return contents.has(c) ? #00000000 : c;
+}

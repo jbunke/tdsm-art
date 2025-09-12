@@ -466,7 +466,7 @@
 		}
 	},
 	{layer:
-		{layer_name:Background}
+		{layer_name:logo}
 		{is_enabled:true}
 		{is_linked:false}
 		{opacity:1.0}
@@ -928,7 +928,7 @@
 		}
 	},
 	{layer:
-		{layer_name:Layer 2}
+		{layer_name:border}
 		{is_enabled:true}
 		{is_linked:false}
 		{opacity:1.0}

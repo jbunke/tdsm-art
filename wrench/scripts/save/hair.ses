@@ -1,0 +1,19 @@
+// To be run when the hair workspace is the active project
+() {
+    ~ string GENERIC_FP = "./generic.ses";
+    ~ string GEN_W_CSV_FP = "./generic-with-csv.ses";
+    
+    ~ string[] IDs = [
+        "waves", "cornrows", "mohawk"
+    ];
+
+    ~ {string:int} incidence = new {string:int};
+
+    ~ script generic = $SE.read_script(GENERIC_FP);
+    ~ script gwcsv = $SE.read_script(GEN_W_CSV_FP);
+    ~ project p = $SE.get_project();
+
+    gwcsv.run(IDs, incidence, "hair", p.get_layer("hair"));
+    generic.run(IDs, "hair-back", p.get_layer("hair-back"));
+    generic.run(IDs, "hair-front", p.get_layer("hair-front"));
+}

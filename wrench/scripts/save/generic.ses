@@ -1,0 +1,10 @@
+(~ string[] IDs, ~ string folder, ~ layer l) {
+    ~ string art_folder = "../../bases/" + folder + "/";
+    ~ int to_save = #| IDs;
+
+    for (int i = 0; i < to_save; i++) {
+        ~ image content = l.get_cel(i);
+
+        write_image(art_folder + IDs[i] + ".png", content);
+    }
+}

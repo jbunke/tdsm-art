@@ -1,0 +1,15 @@
+() {
+    ~ project[] ps = $SE.get_projects();
+    ~ project first = ps[0];
+
+    for (p in ps) {
+        p.pad(-185, -235, -79, -101);
+        p.resize(500, 300);
+
+        if (p != first) {
+            ~ image content = p.get_layer().get_cel(0);
+            first.add_frame();
+            first.get_layer().set_cel(first.get_frame_index(), content);
+        }
+    }
+}

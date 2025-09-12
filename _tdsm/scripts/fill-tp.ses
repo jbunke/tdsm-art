@@ -1,0 +1,12 @@
+() {
+    ~ project p = $SE.get_project();
+    ~ int fc = p.get_frame_count();
+    ~ layer l = p.get_layer();
+
+    for (int f = 0; f < fc; f++) {
+        ~ image cel_was = l.get_cel(f);
+        ~ image cel_is = $SE.fill(cel_was, #889fbc, 52, 10, 0.0, true, false);
+
+        l.set_cel(f, cel_is);
+    }
+}

@@ -1,0 +1,292 @@
+(-> style) {
+    ~ int X = 0; ~ int Y = 1;
+
+    ~ string id = "wrench";
+    ~ int[] dims = [ 48, 48 ];
+    ~ string[] directions = [ "S", "SE", "E", "NE", "N", "NW", "W", "SW" ];
+    ~ bool orientation = $TDSM.HORZ;
+
+    ~ string T_POSE_ID = "t_pose"; ~ string IDLE_ID = "idle";
+    ~ string WALK_ID = "walk";
+    // TODO - remaining animation IDs
+    ~ anim[] anims = define_anims();
+
+    // LAYER PREP
+
+    // Aux
+
+    ~ int[] HEAD_DIMS = [ 32, 32 ];
+    ~ int[] HEAD_SHEET_DIMS = [ HEAD_DIMS[X] * #| directions, HEAD_DIMS[Y] ];
+    ~ (sheet -> (string -> image)) def_composer = 
+            $Init.default_composer(directions, orientation, anims);
+    
+    // Globally referenced layers
+
+    ~ layer body_layer = build_acl("body", dims, l -> get_choices(l, ::simple_choice), 
+            $Init.no_choice_invalid(), def_composer, [ dims[X], 0 ]);
+
+    ~ layer eye_height = $Init.math_layer("eye-height", 0, 1, 0, 
+            i -> i == 0 ? "Low" : "High");
+
+    // TODO
+
+    ~ {bool:layer<>} layers = define_layers();
+
+    return $Init.style(id, dims, directions, orientation, anims, layers)
+}
+
+// SPECIFIED METADATA FUNCTIONS
+
+name(-> string) -> "Wrench"
+
+settings(-> string[]) -> [ "quantize_gba", "warn_rom_15_cols" ]
+
+preview_scale(-> int) -> 2
+
+// END OF METADATA
+
+define_anims(-> anim[]) -> [
+    $Init.anim(T_POSE_ID, fill_arr(12, 1), f -> [ 0, 0 ], false), 
+    $Init.anim(IDLE_ID, fill_arr(30, 2), 
+            $Init.simple_frame_coord_func(1, 0, orientation), false), 
+    $Init.anim(WALK_ID, fill_arr(10, 3), f -> {
+        int x;
+        when (f) {
+            is 0 -> x = 3;
+            is 1 -> x = 1;
+            is 2 -> x = 4;
+        }
+        return [ x, 0 ];
+    }, true)
+]
+
+define_layers(-> {bool:layer<>}) {
+    ~ layer head_layer = build_acl("head", HEAD_DIMS, 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_invalid(), 
+            ::trivial_composer, [ 0, 0 ]);
+
+    ~ layer eye_layer = build_acl("eyes", HEAD_DIMS, 
+            l -> get_choices(l, ::simple_choice), $Init.no_choice_prob(0.0), 
+            ::compose_eyes, [ 0, 0 ]);
+
+    ~ layer hair_layer = build_acl("hair", HEAD_DIMS, 
+            l -> get_choices(l, ::hair_choice), 
+            $Init.no_choice_equal(), ::simple_on_head, [ 0, 0 ]);
+
+    ~ layer facial_hair_layer = build_acl("facial-hair", HEAD_DIMS, 
+            l -> get_choices(l, ::hair_choice), 
+            $Init.no_choice_prob(1.0), ::simple_on_head, [ 0, 0 ]);
+
+    ~ layer hair_back = build_dcl("hair-back", hair_layer, -1);
+    ~ layer hair_front = build_dcl("hair-front", hair_layer, 1);
+
+    ~ layer facial_hair_back = build_dcl("facial-hair-back", 
+            facial_hair_layer, -1);
+
+    // TODO
+
+    ~ layer combined_head_back = $Init.composed_layer(
+        "combined-head-back", id -> {
+            ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[X], HEAD_SHEET_DIMS[Y]);
+
+            // preassembled.draw(hat_back.compose().call(id), 0, 0);
+            
+            // ~ image hat_b_mask = hat_back_mask.compose().call(id);
+
+            image hair_b = hair_back.compose().call(id);
+            // hair_b = $ColorProc.alpha_mask(hair_b, hat_b_mask);
+            preassembled.draw(hair_b, 0, 0);
+
+            image facial_hair_b = facial_hair_back.compose().call(id);
+            // facial_hair_b = $ColorProc.alpha_mask(facial_hair_b, hat_b_mask);
+            preassembled.draw(facial_hair_b, 0, 0);
+
+            ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[X], HEAD_DIMS[Y]);
+            return compose_head(combined).call(id);
+        }
+    );
+
+    ~ layer combined_head = $Init.composed_layer(
+        "combined-head", id -> {
+            ~ image preassembled = new_image_of(HEAD_SHEET_DIMS[X], HEAD_SHEET_DIMS[Y]);
+
+            preassembled.draw(head_layer.compose().call(id), 0, 0);
+            preassembled.draw(eye_layer.compose().call(id), 0, 0);
+
+            // ~ image hat_m = hat_mask.compose().call(id);
+
+            image facial_hair = facial_hair_layer.compose().call(id);
+            // facial_hair = $ColorProc.alpha_mask(facial_hair, hat_m);
+            preassembled.draw(facial_hair, 0, 0);
+
+            image hair = hair_layer.compose().call(id);
+            // hair = $ColorProc.alpha_mask(hair, hat_m);
+            preassembled.draw(hair, 0, 0);
+
+            // preassembled.draw(hat_layer.compose().call(id), 0, 0);
+            preassembled.draw(hair_front.compose().call(id), 0, 0);
+
+            ~ sheet combined = $Init.sheet(preassembled, HEAD_DIMS[X], HEAD_DIMS[Y]);
+            return compose_head(combined).call(id);
+        }
+    );
+
+    // TODO - head mask if necessary
+
+    ~ layer<> custom = <
+        body_layer, head_layer, 
+        eye_layer, eye_height, 
+        hair_layer, facial_hair_layer
+    >;
+    ~ layer<> assembly = <
+        combined_head_back, body_layer, /*clothing_logic, */
+        combined_head/*, head_mask*/
+    >;
+
+    return { $Init.CUSTOM : custom, $Init.ASSEMBLY : assembly };
+}
+
+// HELPERS
+
+// Builders
+
+build_acl(
+    ~ string layer_id, ~ int[] dims, ~ (string -> asset_choice[]) choice_generator, 
+    ~ no_choice nc, ~ (sheet -> (string -> image)) composer, ~ int[] preview_coord ->
+    layer
+) {
+    return $Init.asset_choice_layer(
+        layer_id, dims, s -> fetch_asset(layer_id, s), 
+        choice_generator.call(layer_id), nc, composer, preview_coord
+    );
+}
+
+build_dcl(~ string layer_id, ~ layer ref, ~ int rel_index -> layer) -> 
+        $Init.dependent_layer(layer_id, s -> fetch_asset(layer_id, s), ref, rel_index)
+
+// Trivial composer
+
+trivial_composer(~ sheet sh -> (string -> image)) -> s -> sh.source
+
+// Head composer
+
+compose_head(~ sheet sh -> (string -> image)) {
+    ~ (string -> image) asset_fetcher = x_sheet(sh, ::head_dir_x);
+
+    return sprite_id -> {
+        ~ image sprite = new_image_of(dims[X], dims[Y]);
+
+        ~ int[] offset = head_offset(sprite_id, body_layer);
+        ~ int BASE_X = 8; ~ int BASE_Y = 6;
+        ~ int x = BASE_X + offset[X];
+        ~ int y = BASE_Y + offset[Y];
+
+        sprite.draw(asset_fetcher.call(sprite_id), x, y);
+        return sprite;
+    };
+}
+
+head_offset(~ string sprite_id, ~ layer body_layer -> int[]) {
+    ~ string dir = $Util.extract_direction(sprite_id);
+    ~ string anim_id = $Util.extract_anim_id(sprite_id);
+    ~ int frame = $Util.extract_frame(sprite_id);
+
+    int anim_comp = 0; int frame_comp = 0; int x = 0;
+
+    int body_comp = body_layer.get_choice_index();
+
+    // frame component of Y offset
+
+    when (anim_id) {
+        is IDLE_ID -> frame_comp = frame;
+        is WALK_ID -> frame_comp = frame == 1 ? 0 : -1;
+    }
+
+    return [ x, body_comp + anim_comp + frame_comp ];
+}
+
+x_sheet(~ sheet sh, ~ (string -> int) x_func -> (string -> image)) -> 
+        id -> sh.sprite_at(x_func.call(id), 0)
+
+head_dir_x(~ string sprite_id -> int) {
+    ~ string dir = $Util.extract_direction(sprite_id);
+    
+    for (int i = 0; i < #| directions; i++)
+        if (dir == directions[i])
+            return i;
+    
+    return -1;
+}
+
+// On head composers
+
+compose_eyes(~ sheet sh -> (string -> image)) -> 
+        compose_on_head(sh, -eye_height.get_value())
+
+simple_on_head(~ sheet sh -> (string -> image)) -> compose_on_head(sh, 0)
+
+compose_on_head(~ sheet sh, ~ int aug_y -> (string -> image)) {
+    ~ int max = #| directions;
+
+    return id -> {
+        ~ image dest = new_image_of(HEAD_SHEET_DIMS[X], HEAD_SHEET_DIMS[Y]);
+
+        for (int x = 0; x < max; x++) {
+            ~ image source = sh.sprite_at(x, 0);
+
+            dest.draw(source, x * 32, aug_y);
+        }
+
+        return dest;
+    };
+}
+
+// Choice generator
+
+get_choices(
+    ~ string layer_id, ~ (string -> asset_choice) post_split_func -> 
+    asset_choice[]
+) {
+    ~ string csv = read_file("./bases/" + layer_id + "/" + layer_id + ".csv");
+    ~ string[] split = csv.split(",");
+    ~ int n = #| split;
+
+    ~ asset_choice[] choices = new asset_choice[n];
+
+    for (int i = 0; i < n; i++)
+        choices[i] = post_split_func.call(split[i]);
+    
+    return choices;
+}
+
+// Post-CSV split functions
+
+simple_choice(~ string id -> asset_choice) -> 
+        $Init.asset_choice(id, ::replace, new col_sel[0])
+
+hair_choice(~ string csv_entry -> asset_choice) {
+    ~ string[] split = csv_entry.split(":");
+
+    if (#| split == 2) {
+        ~ string id = split[0];
+        
+        return $Init.asset_choice(id, ::replace, new col_sel[0]);
+    } else
+        return $Init.asset_choice(csv_entry, ::replace, new col_sel[0]);
+}
+
+// Misc.
+
+fill_arr(~ int value, ~ int reps -> int[]) {
+    ~ int[] array = new int[reps];
+
+    for (int i = 0; i < reps; i++)
+        array[i] = value;
+    
+    return array;
+}
+
+fetch_asset(~ string layer_id, ~ string id -> image) -> 
+        read_image("./bases/" + layer_id + "/" + id + ".png")
+
+replace(~ color c -> replacement) -> $Init.replacement(-1, c2 -> c2)
