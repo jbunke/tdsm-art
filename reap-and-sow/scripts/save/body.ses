@@ -9,4 +9,13 @@
     ~ script generic = $SE.read_script(GENERIC_FP);
     generic.run(IDs, new {string:int}, "body", 
             $SE.get_project().get_layer("body"));
+    
+    save_legs();
+}
+
+save_legs() {
+    ~ layer l = $SE.get_project().get_layer("legs");
+    ~ image legs = l.get_cel(0);
+    
+    write_image("../../assets/legs/legs.png", legs);
 }

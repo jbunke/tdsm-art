@@ -69,16 +69,35 @@ preview_scale(-> int) -> 2
 // END OF METADATA
 
 define_anims(-> anim[]) -> [
-    $Init.anim(A_ID_IDLE, [ 10, 10, 10, 10 ], n -> [ n, 0 ], false)
+    $Init.anim(A_ID_IDLE, fill_arr(4, 15), n -> [ n, 0 ], false), 
+    $Init.anim(A_ID_WALK, fill_arr(6, 10), ::walk_frame_func, false)
     // TODO
 ]
+
+walk_frame_func(~ int f -> int[]) -> [ f + 4, 0 ]
+
+fill_arr(~ int length, ~ int value -> int[]) {
+    ~ int[] array = new int[length];
+
+    for (int i = 0; i < length; i++)
+        array[i] = value;
+    
+    return array;
+}
 
 define_layers(-> {bool:layer<>}) {
     // CSLs
     ~ layer col_skin = $Init.col_sel_layer("skin-color", [ sel_skin ]);
     ~ layer col_hair = $Init.col_sel_layer("hair-color", [ sel_hair, sel_eyebrows ]);
     ~ layer col_eyes = $Init.col_sel_layer("eye-color", [ sel_eyes ]);
-    
+
+    // ALs
+    ~ string L_ID_LEGS = "legs";
+    ~ layer legs = $Init.asset_layer(
+        L_ID_LEGS, dims, get_asset(L_ID_LEGS, L_ID_LEGS), def_composer, ::replace_bio
+    );
+    legs.add_influences([ sel_skin ]);
+
     // ACLs
     ~ string L_ID_BODY = "body";
     ~ layer body = $Init.asset_choice_layer(
@@ -132,7 +151,7 @@ define_layers(-> {bool:layer<>}) {
         }
     );
 
-    ~ layer<> assembly = < body, combined_head >;
+    ~ layer<> assembly = < legs, body, combined_head >;
     ~ layer<> custom = <
         col_skin, body, head, nose, col_eyes, eyes, col_hair
     >;
@@ -175,7 +194,7 @@ compose_head(~ sheet sh -> (string -> image)) {
         int offset_y = 0;
 
         when (anim_id) {
-            is A_ID_IDLE -> {
+            is A_ID_IDLE, A_ID_WALK -> {
                 offset_y = anim_frame % 3 == 0 ? 0 : 1;
             }
             // TODO
