@@ -1,0 +1,81 @@
+() {
+    ~ int FRAME_DIM = 48;
+    ~ int REPS = 1;
+    ~ int FRAMES = 4;
+    ~ color OUTLINE_COLOR = #cfcdc3;
+
+    ~ project<> ps = <>;
+
+    ~ int[] codes = [
+        104, 132, 139, 149, 161, 214, 374, 421, 432, 447
+    ];
+
+    for (code in codes)
+        for_code(code);
+    
+    compile();
+}
+
+for_code(~ int code) {
+    ~ image sheet = fetch(code);
+    ~ int section_w = FRAME_DIM * 4;
+    ~ int section_h = FRAME_DIM;
+    ~ image down_idle = sheet.section(0, 0, section_w, section_h);
+
+    outline(down_idle);
+
+    ~ project p = $SE.new_project(section_w, section_h, false);
+    ps.add(p);
+
+    ~ layer l = p.get_layer();
+    l.set_cel(0, down_idle);
+    p.split(4, 1, true, false, false);
+    p.resize(FRAME_DIM * 2, FRAME_DIM * 2);
+    p.pad(110, 109, 114, 40);
+}
+
+fetch(~ int code -> image) {
+    ~ string sheet_folder = "./sheets/";
+    return read_image(sheet_folder + code + ".png");
+}
+
+outline(~ image src) {
+    ~ int[]{} selection = {};
+
+    for (int x = 0; x < src.w; x++) {
+        for (int y = 0; y < src.h; y++) {
+            if (src.pixel(x, y).a != 0)
+                selection.add([x, y]);
+        }
+    }
+
+    ~ int[]{} outline = $SE.single_outline(selection, 1);
+
+    for (px in outline)
+        src.dot(OUTLINE_COLOR, px[0], px[1]);
+}
+
+compile() {
+    ~ int w = 315;
+    ~ int h = 250;
+
+    ~ project all = $SE.new_project(w, h);
+    ~ int n = #| ps;
+    ~ int fc = n * FRAMES * REPS;
+    ~ layer l = all.get_layer();
+
+    for (int i = 0; i < n; i++) {
+        for (int r = 0; r < REPS; r++) {
+            for (int f = 0; f < FRAMES; f++) {
+                ~ int fi = (i * FRAMES * REPS) + (r * FRAMES) + f;
+
+                while (all.get_frame_count() <= fi)
+                    all.add_frame();
+                
+                ~ project p = ps<i>;
+                ~ image sample = p.get_layer().get_cel(f);
+                l.set_cel(fi, sample);
+            }
+        }
+    }
+}
