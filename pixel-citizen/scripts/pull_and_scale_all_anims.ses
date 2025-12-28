@@ -1,0 +1,114 @@
+() {
+    ~ int FRAME_DIM = 48;
+    ~ int REPS = 1;
+    ~ int FRAMES = 4;
+    ~ color OUTLINE_COLOR = #cfcdc3;
+
+    ~ int IDX_X = 0;
+    ~ int IDX_Y = 1;
+    ~ int IDX_FRAMES = 2;
+    ~ int IDX_REPS = 3;
+    ~ int IDX_OFFSET_L = 4;
+    ~ int IDX_OFFSET_R = 5;
+    ~ {string : int[]} ANIMS = {
+        "idle" : [ 0, 0, 4, 3, 110, 109 ], 
+        "walk" : [ 4, 2, 6, 2, 182, 37 ], 
+        "run" : [ 10, 1, 6, 2, 38, 181 ]
+    };
+
+    ~ {string : project<>} ps_map = new {string : project<>};
+
+    ~ int[] codes = [
+        104, 132, 139, 149, 161, 214, 374, 421, 432, 447
+    ];
+
+    for (anim in ANIMS.keys()) {
+        ~ int[] data = ANIMS.lookup(anim);
+        ~ int x = data[IDX_X];
+        ~ int y = data[IDX_Y];
+        ~ int frames = data[IDX_FRAMES];
+        ~ int reps = data[IDX_REPS];
+        ~ int offset_l = data[IDX_OFFSET_L];
+        ~ int offset_r = data[IDX_OFFSET_R];
+
+        ~ project<> ps = <>;
+        ps_map.define(anim, ps);
+
+        for (code in codes)
+            rip_animation(code, x, y, frames, offset_l, offset_r, ps);
+        
+        compile_characters_anim(frames, reps, ps);
+    }
+}
+
+rip_animation(
+    ~ int code, ~ int x, ~ int y, ~ int frames, 
+    ~ int offset_l, ~ int offset_r, ~ project<> ps
+) {
+    ~ image sheet = fetch(code);
+    ~ int section_w = FRAME_DIM * frames;
+    ~ int section_h = FRAME_DIM;
+    ~ image anim_sheet = sheet.section(x * FRAME_DIM, y * FRAME_DIM, section_w, section_h);
+
+    outline(anim_sheet);
+
+    ~ project p = $SE.new_project(section_w, section_h, false);
+    ps.add(p);
+
+    ~ layer l = p.get_layer();
+    l.set_cel(0, anim_sheet);
+    p.split(frames, 1, true, false, false);
+    p.resize(FRAME_DIM * 2, FRAME_DIM * 2);
+    p.pad(offset_l, offset_r, 114, 40);
+}
+
+fetch(~ int code -> image) {
+    ~ string sheet_folder = "./sheets/";
+    return read_image(sheet_folder + code + ".png");
+}
+
+outline(~ image src) {
+    ~ int[]{} selection = {};
+
+    for (int x = 0; x < src.w; x++) {
+        for (int y = 0; y < src.h; y++) {
+            if (src.pixel(x, y).a != 0)
+                selection.add([x, y]);
+        }
+    }
+
+    ~ int[]{} outline = $SE.single_outline(selection, 1);
+
+    for (px in outline) {
+        ~ int x = px[0];
+        ~ int y = px[1];
+
+        if (x >= 0 && x < src.w && y >= 0 && y < src.h)
+            src.dot(OUTLINE_COLOR, x, y);
+    }
+}
+
+compile_characters_anim(~ int frames, ~ int reps, ~ project<> ps) {
+    ~ int w = 315;
+    ~ int h = 250;
+
+    ~ project all = $SE.new_project(w, h);
+    ~ int n = #| ps;
+    ~ int fc = n * frames * reps;
+    ~ layer l = all.get_layer();
+
+    for (int i = 0; i < n; i++) {
+        for (int f = 0; f < frames; f++) {
+            for (int r = 0; r < reps; r++) {
+                ~ int fi = (i * reps * frames) + (f * reps) + r;
+
+                while (all.get_frame_count() <= fi)
+                    all.add_frame();
+                
+                ~ project p = ps<i>;
+                ~ image sample = p.get_layer().get_cel(f);
+                l.set_cel(fi, sample);
+            }
+        }
+    }
+}
