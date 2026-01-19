@@ -1,0 +1,132 @@
+() {
+    ~ int FRAME_DIM = 48;
+    ~ int DISPLAY_DIM = 96;
+    ~ color BG = #8c6b5e;
+    ~ int LCM = 144;
+
+    // project::pad values
+    ~ int[] PAD_S = [ 24, 24, 48, 0 ];
+    ~ int[] PAD_N = [ 24, 24, 0, 48 ];
+    ~ int[] PAD_W = [ 0, 48, 24, 24 ];
+    ~ int[] PAD_E = [ 48, 0, 24, 24 ];
+
+    // project::pad indices
+    ~ int INDEX_L = 0;
+    ~ int INDEX_R = 1;
+    ~ int INDEX_T = 2;
+    ~ int INDEX_B = 3;
+
+    // display coordinates
+    ~ int[] DISPLAY_S = [ 24, 48 ];
+    ~ int[] DISPLAY_W = [ 0, 24 ];
+    ~ int[] DISPLAY_E = [ 48, 24 ];
+    ~ int[] DISPLAY_N = [ 24, 0 ];
+
+    // direction y levels
+    ~ int DIRECTIONS = 4;
+    ~ int INDEX_S = 0;
+    ~ int INDEX_W = 1;
+    ~ int INDEX_E = 2;
+    ~ int INDEX_N = 3;
+
+    // animations
+    ~ {string : int[]} ANIMS = {
+        "walk" : [ 4, 6 ]
+    };
+    ~ int INDEX_X = 0;
+    ~ int INDEX_ANIM_FC = 1;
+
+    ~ int[] codes = [
+        104, 132, 139, 149, 161, 214, 374, 421, 432, 447
+    ];
+
+    for (code in codes)
+        do_for_code(code);
+}
+
+do_for_code(~ int code) {
+    ~ image sheet = fetch(code);
+
+    for (anim_id in ANIMS.keys()) {
+        ~ int[] data = ANIMS.lookup(anim_id);
+        ~ int x = data[INDEX_X];
+        ~ int fc = data[INDEX_ANIM_FC];
+        ~ image[][] anim_in_dirs = new image[][DIRECTIONS];
+
+        for (int d = 0; d < DIRECTIONS; d++) {
+            ~ image[] anim_in_dir = rip_anim(x, d, sheet, fc);
+            
+            int[] display_coords;
+
+            when (d) {
+                is INDEX_S -> display_coords = DISPLAY_S;
+                is INDEX_W -> display_coords = DISPLAY_W;
+                is INDEX_E -> display_coords = DISPLAY_E;
+                is INDEX_N -> display_coords = DISPLAY_N;
+            }
+
+            for (int f = 0; f < fc; f++) {
+                ~ image resized = new_image_of(DISPLAY_DIM, DISPLAY_DIM);
+                resized.draw(anim_in_dir[f], display_coords[0], display_coords[1]);
+                anim_in_dir[f] = resized;
+            }
+
+            anim_in_dirs[d] = anim_in_dir;
+        }
+
+        ~ project anim_project = $SE.new_project(DISPLAY_DIM, DISPLAY_DIM);
+
+        while (#| anim_project.get_layers() < DIRECTIONS)
+            anim_project.add_layer();
+
+        while (anim_project.get_frame_count() < fc)
+            anim_project.add_frame();
+        
+        for (int d = 0; d < DIRECTIONS; d++) {
+            ~ layer l = anim_project.get_layer(d);
+            ~ image[] anim_in_dir = anim_in_dirs[d];
+
+            for (int f = 0; f < fc; f++)
+                l.set_cel(f, anim_in_dir[f]);
+        }
+
+        postprocessing(anim_project, anim_id);
+    }
+}
+
+postprocessing(~ project p, ~ string anim_id) {
+    p.pad(8, 8, 8, 8);
+    
+    p.flatten();
+    layer l = p.get_layer();
+    l.set_name(anim_id);
+    
+    p.add_layer();
+    p.move_layer_down();
+    l = p.get_layer();
+    l.set_name("background");
+    l.link_cels();
+
+    image bg = new_image_of(p.get_width(), p.get_height());
+    bg = $SE.fill(bg, BG, 0, 0, 0.0, true, false);
+
+    l.set_cel(0, bg);
+}
+
+rip_anim(~ int x, ~ int y, ~ image sheet, ~ int frames -> image[]) {
+    ~ image strip = sheet.section(
+        x * FRAME_DIM, y * FRAME_DIM, frames * FRAME_DIM, FRAME_DIM
+    );
+
+    ~ image[] sequence = new image[frames];
+
+    for (int i = 0; i < #| sequence; i++)
+        sequence[i] = strip.section(i * FRAME_DIM, 0, FRAME_DIM, FRAME_DIM);
+
+    return sequence;
+}
+
+fetch(~ int code -> image) {
+    ~ string sheet_folder = "./sheets/";
+    return read_image(sheet_folder + code + ".png");
+}

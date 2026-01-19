@@ -1,0 +1,16 @@
+() {
+    ~ project p = $SE.get_project();
+
+    ~ int w = p.get_width();
+    ~ int h = p.get_height();
+
+    ~ int fc = p.get_frame_count();
+    ~ layer l = p.get_layer();
+
+    for (int f = 0; f < fc; f++) {
+        ~ image cel = l.get_cel(f);
+        ~ image new_cel = new_image_of(w, h);
+        new_cel.draw(cel, -2 * f, 0);
+        l.set_cel(f, new_cel);
+    }
+}
